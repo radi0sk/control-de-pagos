@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estado Financiero Actualizado</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #34495e;
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-left: 4px solid #3498db;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #2980b9;
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+            font-size: 11px;
+        }
+        .total-row {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .debt-row {
+            background-color: #ffebee;
+        }
+        .paid-nico {
+            background-color: #dfebf5;
+        }
+        .paid-row {
+            background-color: #e8f5e8;
+        }
+        .warning-row {
+            background-color: #fff3cd;
+        }
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .summary-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .amount {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .negative {
+            color: #e74c3c;
+        }
+        .positive {
+            color: #27ae60;
+        }
+        .alert-box {
+            background-color: #ffeaa7;
+            border-left: 4px solid #fdcb6e;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .debtors-summary {
+            background-color: #fff5f5;
+            border: 2px solid #fed7d7;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<style>.comparative-chart {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+    }
+    .chart-container {
+        width: 100%;
+        margin: 10px 0;
+    }
+    .chart-bar {
+        height: 40px;
+        margin: 5px 0;
+        padding: 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: white;
+        border-radius: 4px;
+    }
+    .income {
+        background: linear-gradient(90deg, #2ecc71, #27ae60);
+    }
+    .expense {
+        background: linear-gradient(90deg, #e74c3c, #c0392b);
+    }
+    .comparative-table {
+        margin-top: 25px;
+    }
+    .neutral {
+        color: #3498db;
+        font-weight: bold;
+    }
+      .debtors-table th {
+        background-color: #e74c3c;
+        color: white;
+    }
+    .recommendations {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+    .recommendations ol {
+        padding-left: 20px;
+    }
+    .recommendations li {
+        margin-bottom: 10px;
+        line-height: 1.6;
+    }</style>
+<body>
+    <div class="container">
+        <h1>ESTADO FINANCIERO ACTUALIZADO</h1>
+        <p style="text-align: center; color: #7f8c8d;">Asociación - Registro Completo de Aportaciones y Gastos</p>
+
+        <div class="summary-card">
+    <h2 style="color: white; background: none; padding: 0; border: none; margin: 0;">RESUMEN EJECUTIVO ACTUALIZADO</h2>
+    <div class="summary-grid">
+        <div class="summary-item">
+            <div>Total Asignado</div>
+            <div class="amount">Q 189,499.57</div>
+        </div>
+        <div class="summary-item">
+            <div>Total Recaudado</div>
+            <div class="amount">Q 144,207.77</div>
+        </div>
+        <div class="summary-item">
+            <div>Total Gastos</div>
+            <div class="amount">Q 142,124.00</div> <!-- Actualizado -->
+        </div>
+        <div class="summary-item">
+            <div>Saldo Disponible</div>
+            <div class="amount positive">Q 2,083.77</div> <!-- Cambiado a positivo -->
+        </div>
+        <div class="summary-item">
+            <div>Deuda por Cobrar</div>
+            <div class="amount">Q 45,291.80</div>
+        </div>
+        <div class="summary-item">
+            <div>Tasa de Recuperación</div>
+            <div class="amount">76.1%</div>
+        </div>
+    </div>
+</div>
+
+<div class="alert-box">
+    <h3 style="color: #27ae60; margin-top: 0;">✅ SITUACIÓN FINANCIERA MEJORADA</h3> <!-- Cambiado a verde -->
+    <p><strong>La asociación ahora tiene un superávit de Q 2,083.77</strong> - Los ingresos recaudados cubren los gastos ejecutados.</p>
+    <p>Se mantiene pendiente cobrar Q 45,291.80 para completar los compromisos financieros.</p>
+</div>
+
+       
+
+        <h2>1. DETALLE DE INGRESOS POR CONCEPTO</h2>
+
+        <h3>A. Primera Aportación - Gastos Varios</h3>
+        <table>
+            <tr>
+                <th>Integrante</th>
+                <th>Cuota</th>
+                <th>Pagado</th>
+                <th>Pendiente</th>
+                <th>Estado</th>
+            </tr>
+            <tr class="paid-row"><td>Salvador Sojuel</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Nicolas Tzina</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Diego Tzina</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Nicolas Yatas</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Juan Sososf</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Antonio Sosof</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Andres Ramirez</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Diego Chiquival</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Gaspar Reanda Quieju</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Jose Sojuel Pablo</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-nico"><td>Nicolas Chiquival</td><td>Q 500.00</td><td><strong>Q 500.00</strong></td><td>Q 0.00</td><td>💙 Pagado (Deuda comida)</td></tr>
+            <tr class="total-row"><td colspan="2"><strong>TOTALES</strong></td><td><strong>Q 5,500.00</strong></td><td><strong>Q 0.00</strong></td><td></td></tr>
+        </table>
+
+        <h3>B. Lic. Francisco</h3>
+        <table>
+            <tr>
+                <th>Integrante</th>
+                <th>Total Asignado</th>
+                <th>Pagado</th>
+                <th>Pendiente</th>
+                <th>Estado</th>
+            </tr>
+            <tr class="paid-row"><td>Salvador Sojuel</td><td>Q 1,650.00</td><td>Q 1,650.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Nicolas Tzina</td><td>Q 1,350.00</td><td>Q 1,350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Diego Tzina</td><td>Q 1,350.00</td><td>Q 1,350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Nicolas Yatas</td><td>Q 1,050.00</td><td>Q 1,050.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Juan Sososf</td><td>Q 1,650.00</td><td>Q 1,650.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Antonio Sosof</td><td>Q 1,650.00</td><td>Q 1,650.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Andres Ramirez</td><td>Q 1,350.00</td><td>Q 1,350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Diego Chiquival</td><td>Q 1,350.00</td><td>Q 1,350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Gaspar Reanda Quieju</td><td>Q 1,050.00</td><td>Q 1,050.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Jose Sojuel Pablo</td><td>Q 1,350.00</td><td>Q 1,350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-nico"><td>Nicolas Chiquival</td><td>Q 1,350.00</td><td>Q 1,350.00</td><td>Q 0.00</td><td>💙 Pagado (Deuda comida)</td></tr>
+            <tr class="total-row"><td><strong>TOTALES</strong></td><td><strong>Q 14,850.00</strong></td><td><strong>Q 14,850.00</strong></td><td><strong>Q 0.00</strong></td><td></td></tr>
+        </table>
+
+        <h3>C. Ingeniero - Instrumento Ambiental</h3>
+        <table>
+            <tr>
+                <th>Integrante</th>
+                <th>Total Asignado</th>
+                <th>Pagado</th>
+                <th>Pendiente</th>
+                <th>Estado</th>
+            </tr>
+            <tr class="warning-row"><td>Salvador Sojuel</td><td>Q 1,650.00</td><td>Q 800.00</td><td>Q 850.00</td><td>⚠️ Parcial</td></tr>
+            <tr class="warning-row"><td>Nicolas Tzina</td><td>Q 1,350.00</td><td>Q 800.00</td><td>Q 550.00</td><td>⚠️ Parcial</td></tr>
+            <tr class="paid-row"><td>Diego Tzina</td><td>Q 1,350.00</td><td>Q 1,350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="warning-row"><td>Nicolas Yatas</td><td>Q 1,050.00</td><td>Q 550.00</td><td>Q 500.00</td><td>⚠️ Parcial</td></tr>
+            <tr class="warning-row"><td>Juan Sososf</td><td>Q 1,650.00</td><td>Q 1,600.00</td><td>Q 50.00</td><td>⚠️ Parcial</td></tr>
+            <tr class="paid-row"><td>Antonio Sosof</td><td>Q 1,650.00</td><td>Q 1,650.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="warning-row"><td>Andres Ramirez</td><td>Q 1,350.00</td><td>Q 750.00</td><td>Q 600.00</td><td>⚠️ Parcial</td></tr>
+            <tr class="warning-row"><td>Diego Chiquival</td><td>Q 1,350.00</td><td>Q 600.00</td><td>Q 750.00</td><td>⚠️ Parcial</td></tr>
+            <tr class="warning-row"><td>Gaspar Reanda Quieju</td><td>Q 1,050.00</td><td>Q 500.00</td><td>Q 550.00</td><td>⚠️ Parcial</td></tr>
+            <tr class="warning-row"><td>Jose Sojuel Pablo</td><td>Q 1,350.00</td><td>Q 800.00</td><td>Q 550.00</td><td>⚠️ Parcial</td></tr>
+            <tr class="paid-nico"><td>Nicolas Chiquival</td><td>Q 1,350.00</td><td><strong>Q 315.00</strong></td><td>Q 1,035.00</td><td>💙 Pagado (Deuda comida)</td></tr>
+            <tr class="total-row"><td><strong>TOTALES</strong></td><td><strong>Q 14,850.00</strong></td><td><strong>Q 9,400.00</strong></td><td><strong>Q 5,450.00</strong></td><td></td></tr>
+        </table>
+
+        <h3>D. Buzo</h3>
+        <table>
+            <tr>
+                <th>Integrante</th>
+                <th>Cuota Asignada</th>
+                <th>Pagado</th>
+                <th>Pendiente</th>
+                <th>Estado</th>
+            </tr>
+            <tr class="paid-row"><td>Salvador Sojuel</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Nicolas Tzina</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Diego Tzina</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Nicolas Yatas</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Juan Sososf</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Antonio Sosof</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="debt-row"><td>Andres Ramirez</td><td>Q 500.00</td><td>Q 0.00</td><td>Q 500.00</td><td>❌ Pendiente</td></tr>
+            <tr class="warning-row"><td>Diego Chiquival</td><td>Q 500.00</td><td>Q 300.00</td><td>Q 200.00</td><td>⚠️ Parcial</td></tr>
+            <tr class="paid-row"><td>Gaspar Reanda Quieju</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Jose Sojuel Pablo</td><td>Q 500.00</td><td>Q 500.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="debt-row"><td>Nicolas Chiquival</td><td>Q 500.00</td><td>Q 0.00</td><td>Q 500.00</td><td>❌ Pendiente</td></tr>
+            <tr class="total-row"><td colspan="2"><strong>TOTALES</strong></td><td><strong>Q 4,300.00</strong></td><td><strong>Q 1,200.00</strong></td><td></td></tr>
+        </table>
+
+        <h3>E. Recaudación Luqueño (Q150 c/u)</h3>
+        <table>
+            <tr>
+                <th>Integrante</th>
+                <th>Cuota</th>
+                <th>Estado</th>
+            </tr>
+            <tr class="paid-row"><td>Todos los miembros</td><td>Q 150.00</td><td>✅ Pagado completo</td></tr>
+            <tr class="total-row"><td><strong>TOTAL RECAUDADO</strong></td><td><strong>Q 1,650.00</strong></td><td><strong>Q 0.00 pendiente</strong></td></tr>
+        </table>
+
+        <h3>F. Coloma Lic. Problema 22 Abril</h3>
+        <table>
+            <tr>
+                <th>Integrante</th>
+                <th>Cuota Asignada</th>
+                <th>Pagado</th>
+                <th>Estado</th>
+            </tr>
+            <tr class="debt-row"><td>Salvador Sojuel</td><td>Q 300.00</td><td>Q 0.00</td><td>❌ Pendiente</td></tr>
+            <tr class="paid-row"><td>Otros 10 miembros</td><td>Q 300.00 c/u</td><td>Q 300.00 c/u</td><td>✅ Completo</td></tr>
+            <tr class="total-row"><td colspan="2"><strong>TOTALES</strong></td><td><strong>Q 3,000.00</strong></td><td><strong>Q 300.00 pendiente</strong></td></tr>
+        </table>
+
+        <h3>G. Recaudación Lic. Mario 1era Asesoría</h3>
+        <table>
+            <tr>
+                <th>Integrante</th>
+                <th>Cuota Asignada</th>
+                <th>Pagado</th>
+                <th>Pendiente</th>
+                <th>Estado</th>
+            </tr>
+            <tr class="paid-row"><td>Salvador Sojuel</td><td>Q 350.00</td><td>Q 350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Nicolas Tzina</td><td>Q 350.00</td><td>Q 350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Diego Tzina</td><td>Q 350.00</td><td>Q 350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Nicolas Yatas</td><td>Q 350.00</td><td>Q 350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Juan Sososf</td><td>Q 350.00</td><td>Q 350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Antonio Sosof</td><td>Q 350.00</td><td>Q 350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="debt-row"><td>Andres Ramirez</td><td>Q 350.00</td><td>Q 0.00</td><td>Q 350.00</td><td>❌ Pendiente</td></tr>
+            <tr class="paid-row"><td>Diego Chiquival</td><td>Q 350.00</td><td>Q 350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Gaspar Reanda Quieju</td><td>Q 350.00</td><td>Q 350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Jose Sojuel Pablo</td><td>Q 350.00</td><td>Q 350.00</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="debt-row"><td>Nicolas Chiquival</td><td>Q 350.00</td><td>Q 0.00</td><td>Q 350.00</td><td>❌ Pendiente</td></tr>
+            <tr class="total-row"><td colspan="2"><strong>TOTALES</strong></td><td><strong>Q 3,150.00</strong></td><td><strong>Q 700.00</strong></td><td></td></tr>
+        </table>
+
+        <h3>H. Lic. Mario Amparo</h3>
+        <table>
+            <tr>
+                <th>Integrante</th>
+                <th>Cuota Asignada</th>
+                <th>1er Pago</th>
+                <th>Adicional</th>
+                <th>Total Pagado</th>
+                <th>Pendiente</th>
+                <th>Estado</th>
+            </tr>
+            <tr class="paid-row"><td>Salvador Sojuel</td><td>Q 9,550.56</td><td>Q 9,000.00</td><td>Q 550.56</td><td>Q 9,550.56</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Nicolas Tzina</td><td>Q 6,741.57</td><td>Q 5,000.00</td><td>Q 1,741.57</td><td>Q 6,741.57</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Diego Tzina</td><td>Q 6,179.78</td><td>Q 5,000.00</td><td>Q 1,179.78</td><td>Q 6,179.78</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Nicolas Yatas</td><td>Q 1,404.49</td><td>Q 600.00</td><td>Q 804.49</td><td>Q 1,404.49</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Juan Sososf</td><td>Q 22,471.91</td><td>Q 10,000.00</td><td>Q 12,471.91</td><td>Q 22,471.91</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="warning-row"><td>Antonio Sosof</td><td>Q 9,550.56</td><td>Q 7,640.00</td><td>Q 1,900.56</td><td>Q 9,540.56</td><td>Q 10.00</td><td>⚠️ Parcial</td></tr>
+            <tr class="paid-row"><td>Andres Ramirez</td><td>Q 4,494.38</td><td>Q 3,600.00</td><td>Q 894.38</td><td>Q 4,494.38</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Diego Chiquival</td><td>Q 5,617.98</td><td>Q 3,000.00</td><td>Q 2,617.98</td><td>Q 5,617.98</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="paid-row"><td>Gaspar Reanda Quieju</td><td>Q 2,247.19</td><td>Q 1,800.00</td><td>Q 447.19</td><td>Q 2,247.19</td><td>Q 0.00</td><td>✅ Completo</td></tr>
+            <tr class="warning-row"><td>Jose Sojuel Pablo</td><td>Q 3,932.58</td><td>Q 1,500.00</td><td>Q 2,400.00</td><td>Q 3,900.00</td><td>Q 32.58</td><td>⚠️ Parcial</td></tr>
+            <tr class="paid-nico"><td>Nicolas Chiquival</td><td>Q 2,808.99</td><td><strong>Q 2,808.99</strong></td><td>Q 0.00</td><td>Q 2,808.99</td><td>Q 0.00 </td><td>💙 Pagado (Deuda comida)</td></tr>
+            <tr class="total-row"><td colspan="3"><strong>TOTALES</strong></td><td><strong>Q 25,008.42</strong></td><td><strong>Q 72,148.42</strong></td><td><strong>Q 42.58</strong></td><td></td></tr>
+        </table>
+
+        <h3>I. Lic. Mario Penal</h3>
+        <table>
+            <tr>
+                <th>Integrante</th>
+                <th>Cuota Total</th>
+                <th>1er Pago</th>
+                <th>2do Pago</th>
+                <th>3er Pago</th>
+                <th>Total Pagado</th>
+                <th>Pendiente</th>
+            </tr>
+            <tr class="warning-row"><td>Salvador Sojuel</td><td>Q 8,435.06</td><td>Q 4,217.53</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 4,217.53</td><td>Q 4,217.53</td></tr>
+            <tr class="warning-row"><td>Nicolas Tzina</td><td>Q 5,954.16</td><td>Q 2,977.08</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 2,977.08</td><td>Q 2,977.08</td></tr>
+            <tr class="warning-row"><td>Diego Tzina</td><td>Q 5,457.98</td><td>Q 2,728.99</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 2,728.99</td><td>Q 2,728.99</td></tr>
+            <tr class="warning-row"><td>Nicolas Yatas</td><td>Q 1,240.45</td><td>Q 620.23</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 620.23</td><td>Q 620.22</td></tr>
+            <tr class="warning-row"><td>Juan Sososf</td><td>Q 19,599.11</td><td>Q 9,799.56</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 9,799.56</td><td>Q 9,799.55</td></tr>
+            <tr class="warning-row"><td>Antonio Sosof</td><td>Q 8,435.06</td><td>Q 4,217.53</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 4,217.53</td><td>Q 4,217.53</td></tr>
+            <tr class="warning-row"><td>Andres Ramirez</td><td>Q 3,969.44</td><td>Q 1,984.72</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 1,984.72</td><td>Q 1,984.72</td></tr>
+            <tr class="warning-row"><td>Diego Chiquival</td><td>Q 4,961.80</td><td>Q 2,480.90</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 2,480.90</td><td>Q 2,480.90</td></tr>
+            <tr class="warning-row"><td>Gaspar Reanda Quieju</td><td>Q 1,984.72</td><td>Q 992.36</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 992.36</td><td>Q 992.36</td></tr>
+            <tr class="warning-row"><td>Jose Sojuel Pablo</td><td>Q 2,480.90</td><td>Q 1,240.45</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 1,240.45</td><td>Q 1,240.45</td></tr>
+            <tr class="debt-row"><td>Nicolas Chiquival</td><td>Q 2,480.90</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 0.00</td><td>Q 2,480.90</td></tr>
+            <tr class="total-row"><td colspan="2"><strong>TOTALES</strong></td><td><strong>Q 31,259.35</strong></td><td><strong>Q 0.00</strong></td><td><strong>Q 0.00</strong></td><td><strong>Q 31,259.35</strong></td><td><strong>Q 33,740.23</strong></td></tr>
+        </table>
+
+        <h2>2. RESUMEN DE INGRESOS TOTALES</h2>
+        <table>
+            <tr>
+                <th>Concepto</th>
+                <th>Monto Asignado</th>
+                <th>% del Total</th>
+                <th>Recaudado</th>
+                <th>% Recaudado</th>
+                <th>Pendiente</th>
+            </tr>
+            <tr><td>Primera Aportación</td><td>Q 5,500.00</td><td>2.9%</td><td>Q 5,500.00</td><td>100.0%</td><td>Q 0.00</td></tr>
+            <tr><td>Lic. Francisco</td><td>Q 14,850.00</td><td>7.8%</td><td>Q 14,850.00</td><td>100.0%</td><td>Q 0.00</td></tr>
+            <tr><td>Ingeniero Ambiental</td><td>Q 14,850.00</td><td>7.8%</td><td>Q 9,400.00</td><td>63.3%</td><td>Q 5,450.00</td></tr>
+            <tr><td>Buzo</td><td>Q 5,500.00</td><td>2.9%</td><td>Q 4,300.00</td><td>78.2%</td><td>Q 1,200.00</td></tr>
+            <tr><td>Recaudación Luqueño</td><td>Q 1,650.00</td><td>0.9%</td><td>Q 1,650.00</td><td>100.0%</td><td>Q 0.00</td></tr>
+            <tr><td>Coloma Problema</td><td>Q 3,300.00</td><td>1.7%</td><td>Q 3,000.00</td><td>90.9%</td><td>Q 300.00</td></tr>
+            <tr><td>Lic. Mario 1era Asesoría</td><td>Q 3,850.00</td><td>2.0%</td><td>Q 3,150.00</td><td>81.8%</td><td>Q 700.00</td></tr>
+            <tr><td>Lic. Mario Amparo</td><td>Q 74,999.99</td><td>39.6%</td><td>Q 72,148.42</td><td>96.2%</td><td>Q 2,851.57</td></tr>
+            <tr class="warning-row"><td>Lic. Mario Penal</td><td>Q 64,999.58</td><td>34.3%</td><td>Q 31,259.35</td><td>48.1%</td><td>Q 33,740.23</td></tr>
+            <tr class="total-row"><td><strong>TOTALES GENERALES</strong></td><td><strong>Q 189,499.57</strong></td><td><strong>100%</strong></td><td><strong>Q 144,207.77</strong></td><td><strong>76.1%</strong></td><td><strong>Q 45,291.80</strong></td></tr>
+        </table>
+
+        <h2>3. DETALLE DE GASTOS EJECUTADOS</h2>
+        <h3>Gastos Pagados y Pendientes</h3>
+        <table>
+            <tr>
+                <th>Fecha</th>
+                <th>Concepto</th>
+                <th>Pagado</th>
+                <th>Pendiente</th>
+                <th>Total</th>
+                <th>Estado</th>
+            </tr>
+            <tr class="paid-row">
+                <td>23/03/2024</td>
+                <td>Toma de foto</td>
+                <td>Q 1,233.00</td>
+                <td>Q 0.00</td>
+                <td>Q 1,233.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td>26/03/2024</td>
+                <td>Refacción</td>
+                <td>Q 88.00</td>
+                <td>Q 0.00</td>
+                <td>Q 88.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td>04/05/2024</td>
+                <td>Almuerzo</td>
+                <td>Q 881.00</td>
+                <td>Q 0.00</td>
+                <td>Q 881.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td>16/04/2024</td>
+                <td>Almuerzo</td>
+                <td>Q 840.00</td>
+                <td>Q 0.00</td>
+                <td>Q 840.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td>17/04/2024</td>
+                <td>Refacción</td>
+                <td>Q 250.00</td>
+                <td>Q 0.00</td>
+                <td>Q 250.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td>07/02/2024</td>
+                <td>Refacción</td>
+                <td>Q 450.00</td>
+                <td>Q 0.00</td>
+                <td>Q 450.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td>09/07/2024</td>
+                <td>Viaje a AMSCLAE</td>
+                <td>Q 655.00</td>
+                <td>Q 0.00</td>
+                <td>Q 655.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Deuda de comida con Nicolás</td>
+                <td>Q 4,474.00</td>
+                <td>Q 0.00</td>
+                <td>Q 4,474.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Lic. Francisco Asociación</td>
+                <td>Q 5,500.00</td>
+                <td>Q 0.00</td>
+                <td>Q 5,500.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Lic. Francisco Asociación (2da parte)</td>
+                <td>Q 3,000.00</td>
+                <td>Q 0.00</td>
+                <td>Q 3,000.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Lic. Francisco Asociación (final)</td>
+                <td>Q 3,000.00</td>
+                <td>Q 0.00</td>
+                <td>Q 3,000.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Ingeniero Instrumento Ambiental</td>
+                <td>Q 7,000.00</td>
+                <td>Q 0.00</td>
+                <td>Q 7,000.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Pago de buzo</td>
+                <td>Q 2,500.00</td>
+                <td>Q 0.00</td>
+                <td>Q 2,500.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Coloma y Lic. Visita</td>
+                <td>Q 1,500.00</td>
+                <td>Q 0.00</td>
+                <td>Q 1,500.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Almuerzo en San Lucas (reunión)</td>
+                <td>Q 600.00</td>
+                <td>Q 0.00</td>
+                <td>Q 600.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Gasto de memorial con gobierno</td>
+                <td>Q 225.00</td>
+                <td>Q 0.00</td>
+                <td>Q 225.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Coloma Lic. Problema 22 abril</td>
+                <td>Q 2,500.00</td>
+                <td>Q 0.00</td>
+                <td>Q 2,500.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Coloma Lic. Problema 22 abril (comida)</td>
+                <td>Q 428.00</td>
+                <td>Q 0.00</td>
+                <td>Q 428.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="warning-row">
+                <td></td>
+                <td>Coloma servicio</td>
+                <td>Q 2,500.00</td>
+                <td>Q 2,500.00</td>
+                <td>Q 5,000.00</td>
+                <td>⚠️ Parcial</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Recaudación Lic. Mario 1era asesoría</td>
+                <td>Q 3,500.00</td>
+                <td>Q 0.00</td>
+                <td>Q 3,500.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="paid-row">
+                <td></td>
+                <td>Lic. Mario Amparo</td>
+                <td>Q 70,000.00</td>
+                <td>Q 0.00</td>
+                <td>Q 70,000.00</td>
+                <td>✅ Pagado</td>
+            </tr>
+            <tr class="warning-row">
+                <td></td>
+                <td>Lic. Mario Penal</td>
+                <td>Q 31,000.00</td>
+                <td>Q 34,000.00</td>
+                <td>Q 65,000.00</td>
+                <td>⚠️ Parcial</td>
+            </tr>
+           <tr class="total-row">
+    <td colspan="2"><strong>TOTALES</strong></td>
+    <td><strong>Q 142,124.00</strong></td> <!-- Corregido -->
+    <td><strong>Q 36,500.00</strong></td>
+    <td><strong>Q 178,624.00</strong></td> <!-- Corregido -->
+    <td></td>
+</tr>
+        </table>
+    </div>
+    <!-- Sección 4: RESUMEN COMPARATIVO INGRESOS vs GASTOS -->
+<h2>4. RESUMEN COMPARATIVO INGRESOS vs GASTOS</h2>
+<div class="comparative-chart">
+    <div class="chart-container">
+        <div class="chart-bar income" style="width: 76.1%;">
+            <span>Ingresos Recaudados (76.1%)</span>
+            <strong>Q 144,207.77</strong>
+        </div>
+        <div class="chart-bar expense" style="width: 75.0%;">
+            <span>Gastos Ejecutados (75.0%)</span>
+            <strong>Q 142,124.00</strong>
+        </div>
+    </div>
+</div>
+
+<table class="comparative-table">
+    <tr>
+        <th>Concepto</th>
+        <th>Monto</th>
+        <th>% del Total</th>
+        <th>Estado</th>
+    </tr>
+    <tr>
+        <td>Total Asignado (Ingresos)</td>
+        <td>Q 189,499.57</td>
+        <td>100%</td>
+        <td class="neutral">Presupuesto base</td>
+    </tr>
+    <tr>
+        <td>Total Recaudado</td>
+        <td>Q 144,207.77</td>
+        <td>76.1%</td>
+        <td class="warning">Por mejorar</td>
+    </tr>
+    <tr>
+        <td>Total Gastos Ejecutados</td>
+        <td>Q 142,124.00</td>
+        <td>75.0%</td>
+        <td class="positive">Controlado</td>
+    </tr>
+    <tr class="total-row">
+        <td><strong>Diferencia (Recaudado - Gastos)</strong></td>
+        <td><strong>Q 2,083.77</strong></td>
+        <td><strong>1.1%</strong></td>
+        <td class="positive"><strong>Superávit</strong></td>
+    </tr>
+</table>
+
+
+<!-- Sección 5: PRINCIPALES DEUDORES - ANÁLISIS CRÍTICO -->
+<h2>🚨 DETALLE COMPLETO DE DEUDAS POR INTEGRANTE</h2>
+<table class="complete-debtors">
+    <tr>
+        <th>Integrante</th>
+        <th>Lic. Penal</th>
+        <th>Ing. Ambiental</th>
+        <th>Buzo</th>
+        <th>Lic. Mario 1era</th>
+        <th>Coloma 22/Abr</th>
+        <th>Lic. Amparo</th>
+        <th><strong>TOTAL</strong></th>
+    </tr>
+    <!-- Deudores prioritarios (rojo) -->
+    <tr class="critical-debt">
+        <td>Juan Sososf</td>
+        <td>Q 9,799.55</td>
+        <td>Q 50.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td><strong>Q 9,849.55</strong></td>
+    </tr>
+    <tr class="critical-debt">
+        <td>Salvador Sojuel</td>
+        <td>Q 4,217.53</td>
+        <td>Q 850.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td><strong>Q 5,067.53</strong></td>
+    </tr>
+    <tr class="critical-debt">
+        <td>Nicolas Chiquival</td>
+        <td>Q 2,480.90</td>
+        <td>Q 1,035.00</td>
+        <td>Q 500.00</td>
+        <td>Q 350.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td><strong>Q 4,365.90</strong></td>
+    </tr>
+    <tr class="critical-debt">
+        <td>Antonio Sosof</td>
+        <td>Q 4,217.53</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 10.00</td>
+        <td><strong>Q 4,227.53</strong></td>
+    </tr>
+    <!-- Deudores moderados (naranja) -->
+    <tr class="warning-debt">
+        <td>Diego Chiquival</td>
+        <td>Q 2,480.90</td>
+        <td>Q 750.00</td>
+        <td>Q 200.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td><strong>Q 3,430.90</strong></td>
+    </tr>
+    <tr class="warning-debt">
+        <td>Andres Ramirez</td>
+        <td>Q 1,984.72</td>
+        <td>Q 600.00</td>
+        <td>Q 500.00</td>
+        <td>Q 350.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td><strong>Q 3,434.72</strong></td>
+    </tr>
+    <tr class="warning-debt">
+        <td>Nicolas Tzina</td>
+        <td>Q 2,977.08</td>
+        <td>Q 550.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td><strong>Q 3,527.08</strong></td>
+    </tr>
+    <tr class="warning-debt">
+        <td>Jose Sojuel Pablo</td>
+        <td>Q 1,240.45</td>
+        <td>Q 550.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 32.58</td>
+        <td><strong>Q 1,823.03</strong></td>
+    </tr>
+    <!-- Deudores menores (amarillo) -->
+    <tr class="minor-debt">
+        <td>Gaspar Reanda Quieju</td>
+        <td>Q 992.36</td>
+        <td>Q 550.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td><strong>Q 1,542.36</strong></td>
+    </tr>
+    <tr class="minor-debt">
+        <td>Nicolas Yatas</td>
+        <td>Q 620.22</td>
+        <td>Q 500.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td><strong>Q 1,120.22</strong></td>
+    </tr>
+    <tr class="minor-debt">
+        <td>Diego Tzina</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 0.00</td>
+        <td>Q 300.00</td>
+        <td>Q 0.00</td>
+        <td><strong>Q 300.00</strong></td>
+    </tr>
+    <!-- Total -->
+    <tr class="total-row">
+        <td><strong>TOTAL GENERAL</strong></td>
+        <td><strong>Q 33,740.23</strong></td>
+        <td><strong>Q 5,450.00</strong></td>
+        <td><strong>Q 1,200.00</strong></td>
+        <td><strong>Q 700.00</strong></td>
+        <td><strong>Q 300.00</strong></td>
+        <td><strong>Q 42.58</strong></td>
+        <td><strong>Q 45,291.80</strong></td>
+    </tr>
+</table>
+
+<style>
+    .complete-debtors {
+        font-size: 12px;
+        margin: 20px 0;
+    }
+    .complete-debtors th {
+        background-color: #2c3e50;
+        color: white;
+        text-align: center;
+    }
+    .critical-debt {
+        background-color: #ffebee !important;
+        font-weight: bold;
+    }
+    .warning-debt {
+        background-color: #fff3cd !important;
+    }
+    .minor-debt {
+        background-color: #e8f5e9 !important;
+    }
+    .total-row td {
+        background-color: #2c3e50;
+        color: white;
+        font-weight: bold;
+    }
+</style>
+
+<!-- Resumen de prioridades -->
+<div class="priority-summary">
+    <h3>🔍 Distribución de Deudas</h3>
+    <div class="priority-grid">
+        <div class="priority-item critical">
+            <h4>🚨 Críticos (4)</h4>
+            <p>Q23,510.51 <small>(51.9%)</small></p>
+            <ul>
+                <li>Juan Sososf</li>
+                <li>Salvador Sojuel</li>
+                <li>Nicolas Chiquival</li>
+                <li>Antonio Sosof</li>
+            </ul>
+        </div>
+        <div class="priority-item warning">
+            <h4>⚠️ Moderados (4)</h4>
+            <p>Q12,215.73 <small>(27.0%)</small></p>
+            <ul>
+                <li>Diego Chiquival</li>
+                <li>Andres Ramirez</li>
+                <li>Nicolas Tzina</li>
+                <li>Jose Sojuel Pablo</li>
+            </ul>
+        </div>
+        <div class="priority-item minor">
+            <h4>📌 Menores (3)</h4>
+            <p>Q2,962.58 <small>(6.5%)</small></p>
+            <ul>
+                <li>Gaspar Reanda</li>
+                <li>Nicolas Yatas</li>
+                <li>Diego Tzina</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    .priority-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+    }
+    .priority-item {
+        padding: 15px;
+        border-radius: 8px;
+    }
+    .critical {
+        background-color: #ffebee;
+        border-left: 4px solid #ef5350;
+    }
+    .warning {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+    }
+    .minor {
+        background-color: #e8f5e9;
+        border-left: 4px solid #4caf50;
+    }
+    .priority-item h4 {
+        margin-top: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+
+<!-- BALANCE FINAL Y RECOMENDACIONES -->
+<h2>6. BALANCE FINAL Y RECOMENDACIONES</h2>
+<div class="summary-card" style="background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);">
+    <div class="summary-grid">
+        <div class="summary-item">
+            <div>Saldo Actual</div>
+            <div class="amount positive">Q 3,073.77</div>
+        </div>
+        <div class="summary-item">
+            <div>Deuda por Cobrar</div>
+            <div class="amount">Q 45,291.80</div>
+        </div>
+        <div class="summary-item">
+            <div>Gastos Pendientes</div>
+            <div class="amount">Q 36,500.00</div>
+        </div>
+    </div>
+</div>
+
+<div class="recommendations">
+    <h3>🔍 Recomendaciones Estratégicas</h3>
+    <ol>
+        <li><strong>Plan de Cobranza Agresivo</strong>: Enfocarse en los 5 deudores prioritarios que concentran Q12,361.19 (27% del total).</li>
+        <li><strong>Reestructuración de Pagos</strong>: Negociar plazos extendidos para el Lic. Mario Penal (Q33,740.23 pendiente).</li>
+        <li><strong>Control de Gastos</strong>: Congelar nuevos gastos no esenciales hasta cubrir el 90% de lo recaudado.</li>
+        <li><strong>Reporte Semanal</strong>: Implementar actualizaciones financieras cada 7 días a todos los miembros.</li>
+        <li><strong>Incentivos de Pago</strong>: Ofrecer descuentos del 5% por pagos anticipados completos.</li>
+    </ol>
+</div>
+
+
+</body>
+</html>

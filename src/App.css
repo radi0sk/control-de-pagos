@@ -1,3 +1,265 @@
+/* App.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+/* Define la paleta de colores como variables CSS para fácil reutilización */
+:root {
+  --color-gray-soft: #F2F2F2;
+  --color-blue-dark: #1F3A93;
+  --color-blue-secondary: #002B5B;
+  --color-white-pure: #FFFFFF;
+  --color-black-soft: #1C1C1C;
+}
+
+body {
+  font-family: 'Inter', sans-serif; /* Se recomienda Inter para una tipografía moderna */
+  background: linear-gradient(135deg, var(--color-gray-soft) 0%, rgba(242, 242, 242, 0.8) 100%);
+  min-height: 100vh;
+  color: var(--color-black-soft);
+}
+
+/* Estilos globales para enlaces y botones que no usan clases específicas */
+a {
+  color: var(--color-blue-dark);
+  text-decoration: none;
+  transition: color 0.3s ease-in-out;
+}
+
+a:hover {
+  color: var(--color-blue-secondary);
+}
+
+/* 1. Diseño de Tarjetas Moderno */
+/* Aplica estas clases a los divs que actúan como tarjetas (ej. en DashboardPage las tarjetas de resumen) */
+.card-modern {
+  border-radius: 16px; /* Bordes redondeados más suaves */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra elegante */
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background-color: var(--color-white-pure); /* Fondo blanco puro */
+}
+
+.card-modern:hover {
+  transform: translateY(-5px) scale(1.02); /* Efecto de elevación y escala sutil */
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada en hover */
+}
+
+/* Estilos de elevación genéricos (puedes aplicarlos a cualquier elemento interactivo) */
+.elevation-1 {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+.elevation-1:hover {
+  box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+
+/* 2. Header Mejorado (ej. para un h1 o un contenedor de título) */
+/* Si tienes un componente de Header o quieres mejorar el título principal */
+.main-header-section {
+  text-align: center;
+  margin-bottom: 2.5rem; /* Más espacio */
+  padding: 1.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.main-header-title {
+  color: var(--color-black-soft);
+  font-size: 2.5rem; /* Tamaño de fuente más grande */
+  font-weight: 700;
+  letter-spacing: -0.05em; /* Espaciado de letras optimizado */
+  line-height: 1.2;
+  transition: color 0.3s ease-in-out;
+}
+
+/* Para un ícono dentro de un contenedor redondeado con gradiente */
+.header-icon-container {
+  display: inline-flex;
+  padding: 1rem;
+  border-radius: 9999px; /* Totalmente redondo */
+  background: linear-gradient(45deg, var(--color-blue-dark), var(--color-blue-secondary));
+  box-shadow: 0 4px 15px rgba(31, 58, 147, 0.4);
+  margin-bottom: 1rem;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.header-icon-container:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(31, 58, 147, 0.6);
+}
+
+.header-icon {
+  color: var(--color-white-pure);
+  width: 2.5rem; /* Ajusta el tamaño según tu ícono */
+  height: 2.5rem;
+}
+
+
+/* 4. Botones Modernos */
+/* Clases para botones que quieres destacar, úsalas en lugar de las clases de Tailwind predeterminadas para un look más personalizado */
+.btn-primary-gradient {
+  background: linear-gradient(45deg, var(--color-blue-dark), var(--color-blue-secondary));
+  color: var(--color-white-pure);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden; /* Para el efecto de brillo */
+}
+
+.btn-primary-gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Efecto de brillo en hover */
+.btn-primary-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2); /* Brillo blanco semi-transparente */
+  transform: skewX(-20deg);
+  transition: all 0.7s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-primary-gradient:hover::before {
+  left: 100%;
+}
+
+/* Puedes crear más variantes como un botón de cancelar */
+.btn-secondary-outline {
+  background-color: transparent;
+  color: var(--color-blue-dark);
+  border: 2px solid var(--color-blue-dark);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
+}
+
+.btn-secondary-outline:hover {
+  background-color: var(--color-blue-dark);
+  color: var(--color-white-pure);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Loading spinner (ejemplo, se puede usar en un botón durante un envío) */
+.spinner {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-top: 3px solid var(--color-white-pure); /* Color de marca */
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+/* 5. Inputs Mejorados */
+/* Estas clases se aplicarían directamente a los input, select, textarea */
+.input-field {
+  border: 1px solid #D1D5DB; /* Gris claro */
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-white-pure);
+  color: var(--color-black-soft);
+  transition: all 0.3s ease-in-out;
+}
+
+.input-field:hover {
+  background-color: #F9FAFB; /* Fondo que cambia al hover */
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-blue-dark);
+  box-shadow: 0 0 0 3px rgba(31, 58, 147, 0.2); /* Efecto de focus elegante */
+}
+
+/* Si quieres inputs con iconos, necesitarás un contenedor wrapper alrededor */
+.input-with-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(90deg, #E0E0E0, #F0F0F0); /* Fondo con gradiente para el contenedor del icono */
+  transition: all 0.3s ease-in-out;
+}
+
+.input-with-icon-wrapper:focus-within {
+  box-shadow: 0 0 0 3px rgba(0, 43, 91, 0.2);
+  background: linear-gradient(90deg, var(--color-blue-dark), var(--color-blue-secondary));
+}
+
+.input-with-icon-wrapper .input-icon {
+  padding: 0.75rem;
+  background: linear-gradient(45deg, var(--color-blue-dark), var(--color-blue-secondary));
+  color: var(--color-white-pure);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease-out; /* Micro-interacción */
+}
+
+.input-with-icon-wrapper:hover .input-icon {
+  transform: scale(1.1);
+}
+
+.input-with-icon-wrapper .input-field-inside { /* Este sería el input real */
+  flex-grow: 1;
+  border: none;
+  outline: none;
+  padding: 0.75rem 1rem;
+  background-color: var(--color-white-pure); /* Fondo del input */
+  color: var(--color-black-soft);
+}
+
+
+/* 6. Micro-interacciones */
+
+/* Íconos que rotan y escalan al hover (ej. para íconos de navegación, o en tarjetas) */
+.icon-interactive:hover {
+  transform: rotate(5deg) scale(1.1); /* Ligera rotación y escalado */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Animación de entrada: FadeInUp */
+/* Aplica esto a contenedores o elementos que quieres que aparezcan con un efecto suave */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Puedes combinar animaciones con retrasos si tienes múltiples elementos */
+.animate-fadeInUp.delay-1 { animation-delay: 0.1s; }
+.animate-fadeInUp.delay-2 { animation-delay: 0.2s; }
+/* ... y así sucesivamente */
+
+/* Estilos existentes de App.css, asegúrate de mantenerlos si los necesitas */
 .App {
   text-align: center;
 }
@@ -26,6 +288,13 @@
 
 .App-link {
   color: #61dafb;
+}
+
+/* Estilos específicos para iconos en App */
+.App-icon {
+  /* composes: icon icon-md; Si usas CSS Modules */
+  margin: 0 0.5rem;
+  color: #61dafb; /* Color consistente con tu tema */
 }
 
 @keyframes App-logo-spin {

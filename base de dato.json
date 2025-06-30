@@ -1,0 +1,192 @@
+{
+  "contribuciones": [
+    {
+      "id": "NWwSLdLiDBepWudnPHw2",
+      "categoriaMiembros": {
+        "grande": 3,
+        "mediano": 6,
+        "pequeño": 2
+      },
+      "costoTotal": 5500,
+      "creadoPor": "Administrador",
+      "descripcion": "empezando",
+      "estado": "pendiente",
+      "fechaCreacion": "17 de junio de 2025, 5:41:49 p.m. UTC-6",
+      "fechaLimite": "30 de junio de 2025, 5:41:00 p.m. UTC-6",
+      "miembros": {
+        "0jWt9U7erRUT9PvLRrrO": {},
+        "1eZFej5rcry8wHXD6bWU": {},
+        "ALmXUkU73aeE3rzhkKWt": {},
+        "J0PnzmnzY16wwbGbJ131": {},
+        "JmCbAZnVHgQJtl4Cpjb5": {},
+        "JpUNO8ZUJgD9TEYC9jtY": {},
+        "TGMWKCjmDAG3JILxbppI": {},
+        "X5rxO3PuHEmQ0sMMcnJm": {},
+        "m3ivS2GTtghWvmp3bXcu": {},
+        "mhpZs4Q2wLOHr9jWC5fY": {},
+        "sQCZORKLVz7XGYS7uRx6": {}
+      },
+      "numeroAbono": "1",
+      "paymentDetails": {
+        "tipoPago": "operativo",
+        "details": [
+          {
+            "amount": "500.00",
+            "cages": 12,
+            "category": "mediano",
+            "installments": ["500.00"],
+            "name": "Nicolas Chiquival "
+          },
+          {
+            "amount": "500.00",
+            "cages": 16,
+            "category": "mediano",
+            "installments": ["500.00"],
+            "name": "Andres Ramirez "
+          },
+          {
+            "amount": "500.00",
+            "cages": 10,
+            "category": "mediano",
+            "installments": ["500.00"],
+            "name": "Jose Sojuel Pablo "
+          },
+          {
+            "amount": "500.00",
+            "cages": 5,
+            "category": "pequeño",
+            "installments": ["500.00"],
+            "name": "Nicolas Yatas "
+          },
+          {
+            "amount": "500.00",
+            "cages": 8,
+            "category": "pequeño",
+            "installments": ["500.00"],
+            "name": "Gaspar Reanda Quieju "
+          },
+          {
+            "amount": "500.00",
+            "cages": 22,
+            "category": "mediano",
+            "installments": ["500.00"],
+            "name": "Diego Tzina "
+          },
+          {
+            "amount": "500.00",
+            "cages": 20,
+            "category": "mediano",
+            "installments": ["500.00"],
+            "name": "Diego Chiquival "
+          },
+          {
+            "amount": "500.00",
+            "cages": 24,
+            "category": "mediano",
+            "installments": ["500.00"],
+            "name": "Nicolas Tzina "
+          },
+          {
+            "amount": "500.00",
+            "cages": 34,
+            "category": "grande",
+            "installments": ["500.00"],
+            "name": "Antonio Sosof "
+          },
+          {
+            "amount": "500.00",
+            "cages": 34,
+            "category": "grande",
+            "installments": ["500.00"],
+            "name": "Salvador Sojuel "
+          },
+          {
+            "amount": "500.00",
+            "cages": 79,
+            "category": "grande",
+            "installments": ["500.00"],
+            "name": "Juan Sososf "
+          }
+        ]
+      },
+      "distributionType": "igualdad",
+      "numInstallments": 11, // Ajustado basado en el array details
+      "summary": {
+        "count": 11,
+        "individualAmount": "500.00",
+        "installmentAmount": "500.00",
+        "totalAmount": "5500.00"
+      },
+      "tipoDistribucion": "igualdad",
+      "titulo": "Primera Aportación - Gastos Varios",
+      "totalJaulasSeleccionadas": 264
+    }
+  ],
+  "expenses": [
+    {
+      "id": "expenseDoc1", // ID generado por Firestore o definido por ti
+      "aprobadoPor": {
+        "0jWt9U7erRUT9PvLRrrO": {},
+        "JpUNO8ZUJgD9TEYC9jtY": {},
+        "1eZFej5rcry8wHXD6bWU": {},
+        "ALmXUkU73aeE3rzhkKWt": {},
+        "J0PnzmnzY16wwbGbJ131": {},
+        "JmCbAZnVHgQJtl4Cpjb5": {},
+        "TGMWKCjmDAG3JILxbppI": {},
+        "X5rxO3PuHEmQ0sMMcnJm": {},
+        "m3ivS2GTtghWvmp3bXcu": {},
+        "mhpZs4Q2wLOHr9jWC5fY": {},
+        "sQCZORKLVz7XGYS7uRx6": {}
+      },
+      "createdAt": "10 de junio de 2025, 12:51:47 p.m. UTC-6",
+      "descripcion": "refaccion",
+      "documento": "https://res.cloudinary.com/dsfnladar/image/upload/v1749581487/nwlqnysmdcrwpgicbws5.jpg",
+      "fecha": "10 de junio de 2025, 12:51:47 p.m. UTC-6",
+      "monto": 88,
+      "proveedor": "grupo",
+      "tipo": "operativo"
+    }
+  ],
+  "member_contributions": [
+    {
+      "id": "memberContributionDoc1", // ID generado por Firestore o definido por ti
+      "abonos": [
+        {
+          "comprobanteUrl": null,
+          "estadoAbono": "pendiente",
+          "fechaPago": null,
+          "fechaRegistroPago": null,
+          "metodoPago": null,
+          "montoAbono": 6818.18,
+          "numeroAbono": 1,
+          "registradoPor": null,
+          "contributionFechaLimite": "30 de junio de 2025, 9:15:00 p.m. UTC-6",
+          "contributionId": "NWwSLdLiDBepWudnPHw2",
+          "contributionTitulo": "amparo",
+          "estadoPagoMiembro": "pendiente",
+          "fechaActualizacion": "28 de junio de 2025, 9:15:37 p.m. UTC-6",
+          "fechaCreacion": "28 de junio de 2025, 9:15:37 p.m. UTC-6",
+          "memberId": "X5rxO3PuHEmQ0sMMcnJm",
+          "miembroCantidadJaulas": 24,
+          "miembroCategoria": "mediano",
+          "miembroNombreCompleto": "Nicolas Tzina ",
+          "montoTotalMiembro": 6818.18
+        }
+        // Podrías añadir más abonos aquí si existen
+      ]
+    }
+  ],
+  "miembros": [
+    {
+      "id": "memberDoc1", // ID generado por Firestore o definido por ti
+      "activo": true,
+      "cantidadJaulas": 12,
+      "categoria": "mediano",
+      "email": "",
+      "fechaRegistro": "10 de junio de 2025, 11:50:57 a.m. UTC-6",
+      "nombre": "Nicolas Chiquival",
+      "telefono": "+50251781886"
+    }
+    // Podrías añadir más miembros aquí si existen
+  ]
+}
