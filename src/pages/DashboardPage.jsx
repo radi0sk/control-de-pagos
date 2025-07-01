@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { collection,  getDocs} from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../firebase/firebaseConfig';
 import { Link } from 'react-router-dom';
-import { CurrencyDollarIcon, CreditCardIcon, BuildingLibraryIcon, WalletIcon, ScaleIcon, ChartBarIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { CurrencyDollarIcon, CreditCardIcon, BuildingLibraryIcon, WalletIcon, ScaleIcon, ChartBarIcon, UsersIcon, CheckCircleIcon, ClockIcon } from '@heroicons/react/24/outline'; // Importar iconos adicionales
 
 const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
@@ -11,12 +11,16 @@ const DashboardPage = () => {
     totalAsignado: 0,
     totalRecaudado: 0,
     totalGastos: 0,
+    totalGastosPagados: 0,
+    totalGastosPendientes: 0,
     saldoDisponible: 0,
     deudaPorCobrar: 0,
     tasaRecuperacion: 0,
     topDebtors: [],
   });
   const [recentActivities, setRecentActivities] = useState([]);
+  const [detailedDebts, setDetailedDebts] = useState([]); // Estado para la tabla de deudores detallada
+  const [contributionsDataMap, setContributionsDataMap] = useState(new Map()); // Nuevo estado para almacenar el mapa de aportaciones (ID -> Título)
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -27,23 +31,42 @@ const DashboardPage = () => {
         let totalAsignado = 0;
         let totalRecaudado = 0;
         let totalGastos = 0;
-        const memberContributionsMap = new Map();
+        let totalGastosPagados = 0;
+        let totalGastosPendientes = 0;
 
+        const memberContributionsMap = new Map(); // Para acumular pagos por miembro y calcular deudas
+        const detailedDebtsMap = new Map(); // Para la nueva tabla de deudores por aportación
+        const tempContributionsMap = new Map(); // Variable temporal para construir el mapa de aportaciones
+
+        // 1. Obtener todas las aportaciones para sus títulos y IDs
+        const contributionsRef = collection(db, 'contributions');
+        const contributionsSnap = await getDocs(contributionsRef);
+        contributionsSnap.docs.forEach(doc => {
+          tempContributionsMap.set(doc.id, doc.data().titulo);
+        });
+        setContributionsDataMap(tempContributionsMap); // Guardar el mapa en el estado
+
+        // 2. Obtener todas las member_contributions
         const memberContributionsRef = collection(db, 'member_contributions');
         const mcSnap = await getDocs(memberContributionsRef);
 
         mcSnap.docs.forEach(doc => {
           const data = doc.data();
-          const miembroId = data.miembroId;
+          const miembroId = data.memberId;
+          const contributionId = data.contributionId;
           const montoTotalMiembro = data.montoTotalMiembro || 0;
           
+          // Sumar los pagos parciales también para el total recaudado
           const pagadoActual = data.abonos?.reduce((sum, abono) => 
-            sum + (abono.estadoAbono === 'pagado' ? abono.montoAbono : 0), 0
+            sum + (abono.montoAbonoPagado || (abono.estadoAbono === 'pagado' ? abono.montoAbono : 0)), 0
           ) || 0;
+
+          const pendienteActual = montoTotalMiembro - pagadoActual;
 
           totalAsignado += montoTotalMiembro;
           totalRecaudado += pagadoActual;
 
+          // Acumular la deuda por miembro para el resumen general
           if (!memberContributionsMap.has(miembroId)) {
             memberContributionsMap.set(miembroId, {
               miembroNombreCompleto: data.miembroNombreCompleto,
@@ -54,44 +77,92 @@ const DashboardPage = () => {
           const miembroData = memberContributionsMap.get(miembroId);
           miembroData.totalAsignadoMiembro += montoTotalMiembro;
           miembroData.totalPagadoMiembro += pagadoActual;
+
+          // Acumular deudas detalladas por miembro y por aportación
+          if (pendienteActual > 0.01) { // Solo si hay deuda pendiente
+            if (!detailedDebtsMap.has(miembroId)) {
+              detailedDebtsMap.set(miembroId, {
+                miembroNombreCompleto: data.miembroNombreCompleto,
+                debts: new Map(), // Map para almacenar deudas por contributionId
+                totalMemberDebt: 0,
+              });
+            }
+            const memberDebtEntry = detailedDebtsMap.get(miembroId);
+            memberDebtEntry.debts.set(contributionId, pendienteActual);
+            memberDebtEntry.totalMemberDebt += pendienteActual;
+          }
         });
 
+        // Convertir detailedDebtsMap a un array para renderizar
+        const sortedDetailedDebts = Array.from(detailedDebtsMap.values())
+          .sort((a, b) => a.miembroNombreCompleto.localeCompare(b.miembroNombreCompleto))
+          .map(entry => ({
+            ...entry,
+            debts: Object.fromEntries(entry.debts) // Convertir Map a objeto para fácil acceso en JSX
+          }));
+        setDetailedDebts(sortedDetailedDebts);
+
+
+        // 3. Obtener datos de expenses (Gastos)
         const expensesRef = collection(db, 'expenses');
         const expensesSnap = await getDocs(expensesRef);
         expensesSnap.docs.forEach(doc => {
-          totalGastos += doc.data().monto || 0;
+          const data = doc.data();
+          const expenseMonto = data.monto || 0;
+          totalGastos += expenseMonto; // Suma el monto total original del gasto
+
+          // Calcular el monto pagado para este gasto específico (sumando abonos)
+          const paidForThisExpense = data.abonos?.reduce((sum, abono) =>
+            sum + (abono.montoAbonoPagado || (abono.estadoAbono === 'pagado' ? abono.montoAbono : 0)), 0
+          ) || 0;
+
+          const pendingForThisExpense = expenseMonto - paidForThisExpense;
+
+          totalGastosPagados += paidForThisExpense;
+          totalGastosPendientes += pendingForThisExpense;
         });
 
         const deudaPorCobrar = totalAsignado - totalRecaudado;
-        const saldoDisponible = totalRecaudado - totalGastos;
+        const saldoDisponible = totalRecaudado - totalGastosPagados; 
         const tasaRecuperacion = totalAsignado > 0 ? (totalRecaudado / totalAsignado) * 100 : 0;
 
-        const topDebtors = Array.from(memberContributionsMap.values())
-          .map(miembro => ({
-            miembroNombreCompleto: miembro.miembroNombreCompleto,
-            deuda: (miembro.totalAsignadoMiembro - miembro.totalPagadoMiembro).toFixed(2),
-          }))
-          .filter(miembro => parseFloat(miembro.deuda) > 0)
-          .sort((a, b) => parseFloat(b.deuda) - parseFloat(a.deuda))
-          .slice(0, 5);
-
+        // Actividad Reciente - Pagos de Aportaciones
         const recentPayments = mcSnap.docs.flatMap(doc => {
           const data = doc.data();
           return data.abonos
-            ?.filter(abono => abono.estadoAbono === 'pagado' && abono.fechaRegistroPago)
+            ?.filter(abono => abono.fechaRegistroPago)
             .map(abono => ({
               type: 'Pago',
-              description: `Pago de Q${abono.montoAbono?.toFixed(2)} por ${data.miembroNombreCompleto} para ${data.contributionTitulo}`,
+              description: `Pago de Q${abono.montoAbonoPagado?.toFixed(2) || abono.montoAbono?.toFixed(2)} por ${data.miembroNombreCompleto} para ${data.contributionTitulo}`,
               date: abono.fechaRegistroPago?.toDate(),
             }));
         }).filter(Boolean);
 
-        const recentExpenses = expensesSnap.docs.map(doc => ({
-          type: 'Gasto',
-          description: `Gasto de Q${doc.data().monto?.toFixed(2)} por ${doc.data().concept}`,
-          date: doc.data().date?.toDate(),
-        }));
+        // Actividad Reciente - Gastos
+        const recentExpenses = expensesSnap.docs.map(doc => {
+          const data = doc.data();
+          let expenseDate = null;
+          if (data.fechaGasto && data.fechaGasto.seconds) {
+            expenseDate = new Date(data.fechaGasto.seconds * 1000);
+          } else if (data.fecha && typeof data.fecha === 'string') {
+            try {
+              const parsedDate = new Date(data.fecha);
+              if (!isNaN(parsedDate)) {
+                expenseDate = parsedDate;
+              }
+            } catch (e) {
+              console.warn("Could not parse old expense date string:", data.fecha, e);
+            }
+          }
+          
+          return {
+            type: 'Gasto',
+            description: `Gasto de Q${data.monto?.toFixed(2)} por ${data.descripcion}`,
+            date: expenseDate,
+          };
+        }).filter(expense => expense.date);
 
+        // Combinar y ordenar actividades recientes
         const combinedRecentActivities = [...recentPayments, ...recentExpenses]
           .sort((a, b) => b.date - a.date)
           .slice(0, 5);
@@ -100,10 +171,12 @@ const DashboardPage = () => {
           totalAsignado: totalAsignado.toFixed(2),
           totalRecaudado: totalRecaudado.toFixed(2),
           totalGastos: totalGastos.toFixed(2),
+          totalGastosPagados: totalGastosPagados.toFixed(2),
+          totalGastosPendientes: totalGastosPendientes.toFixed(2),
           saldoDisponible: saldoDisponible.toFixed(2),
           deudaPorCobrar: deudaPorCobrar.toFixed(2),
           tasaRecuperacion: tasaRecuperacion.toFixed(2),
-          topDebtors,
+          topDebtors: [], // topDebtors se calcula en la nueva tabla detallada
         });
         setRecentActivities(combinedRecentActivities);
 
@@ -116,6 +189,7 @@ const DashboardPage = () => {
     };
 
     fetchDashboardData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {
@@ -138,7 +212,24 @@ const DashboardPage = () => {
     );
   }
 
-  const { totalAsignado, totalRecaudado, totalGastos, saldoDisponible, deudaPorCobrar, tasaRecuperacion, topDebtors } = summaryData;
+  const { totalAsignado, totalRecaudado, totalGastos, totalGastosPagados, totalGastosPendientes, saldoDisponible, deudaPorCobrar, tasaRecuperacion } = summaryData;
+
+  // Calcular totales para la tabla de deudores detallada
+  const totalGeneralDeudasPorAportacion = {};
+  detailedDebts.forEach(member => {
+    for (const contributionId in member.debts) {
+      if (totalGeneralDeudasPorAportacion[contributionId]) {
+        totalGeneralDeudasPorAportacion[contributionId] += member.debts[contributionId];
+      } else {
+        totalGeneralDeudasPorAportacion[contributionId] = member.debts[contributionId];
+      }
+    }
+  });
+
+  // Filtrar las aportaciones que tienen deuda total general > 0
+  const filteredContributionIds = Array.from(contributionsDataMap.keys()).filter(id => 
+    (totalGeneralDeudasPorAportacion[id] || 0) > 0.01
+  );
 
   return (
     <div className="container mx-auto px-4 py-8 animate-fadeInUp">
@@ -150,7 +241,7 @@ const DashboardPage = () => {
 
       {/* Tarjetas de Resumen Ejecutivo con estilos mejorados */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-        {/* Tarjeta 1 */}
+        {/* Tarjeta 1: Total Asignado */}
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <div>
             <p className="text-sm font-semibold opacity-80">Total Asignado</p>
@@ -159,7 +250,7 @@ const DashboardPage = () => {
           <CurrencyDollarIcon className="icon-xl text-white opacity-80" />
         </div>
 
-        {/* Tarjeta 2 */}
+        {/* Tarjeta 2: Total Recaudado */}
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-green-500 to-green-600 text-white">
           <div>
             <p className="text-sm font-semibold opacity-80">Total Recaudado</p>
@@ -168,16 +259,7 @@ const DashboardPage = () => {
           <CreditCardIcon className="icon-xl text-white opacity-80" />
         </div>
 
-        {/* Tarjeta 3 */}
-        <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-red-500 to-red-600 text-white">
-          <div>
-            <p className="text-sm font-semibold opacity-80">Total Gastos</p>
-            <p className="text-2xl font-bold">Q{totalGastos}</p>
-          </div>
-          <BuildingLibraryIcon className="icon-xl text-white opacity-80" />
-        </div>
-
-        {/* Tarjeta 4 */}
+        {/* Tarjeta 3: Saldo Disponible */}
         <div className={`card-modern p-6 flex items-center justify-between ${parseFloat(saldoDisponible) >= 0 ? 'bg-gradient-to-r from-teal-500 to-teal-600' : 'bg-gradient-to-r from-orange-500 to-orange-600'} text-white`}>
           <div>
             <p className="text-sm font-semibold opacity-80">Saldo Disponible</p>
@@ -186,7 +268,7 @@ const DashboardPage = () => {
           <WalletIcon className="icon-xl text-white opacity-80" />
         </div>
 
-        {/* Tarjeta 5 */}
+        {/* Tarjeta 4: Deuda por Cobrar */}
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-purple-500 to-purple-600 text-white">
           <div>
             <p className="text-sm font-semibold opacity-80">Deuda por Cobrar</p>
@@ -195,13 +277,40 @@ const DashboardPage = () => {
           <ScaleIcon className="icon-xl text-white opacity-80" />
         </div>
 
-        {/* Tarjeta 6 */}
+        {/* Tarjeta 5: Tasa de Recuperación */}
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">
           <div>
             <p className="text-sm font-semibold opacity-80">Tasa de Recuperación</p>
             <p className="text-2xl font-bold">{tasaRecuperacion}%</p>
           </div>
           <ChartBarIcon className="icon-xl text-white opacity-80" />
+        </div>
+
+        {/* Tarjeta 6: Total de Gastos (General) */}
+        <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-red-500 to-red-600 text-white">
+          <div>
+            <p className="text-sm font-semibold opacity-80">Total de Gastos (General)</p>
+            <p className="text-2xl font-bold">Q{totalGastos}</p>
+          </div>
+          <BuildingLibraryIcon className="icon-xl text-white opacity-80" />
+        </div>
+
+        {/* Tarjeta 7: Total Gastos Pagados */}
+        <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-green-700 to-green-800 text-white">
+          <div>
+            <p className="text-sm font-semibold opacity-80">Gastos Pagados</p>
+            <p className="text-2xl font-bold">Q{totalGastosPagados}</p>
+          </div>
+          <CheckCircleIcon className="icon-xl text-white opacity-80" />
+        </div>
+
+        {/* Tarjeta 8: Falta por Pagar (Gastos) */}
+        <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-orange-700 to-orange-800 text-white">
+          <div>
+            <p className="text-sm font-semibold opacity-80">Falta por Pagar (Gastos)</p>
+            <p className="text-2xl font-bold">Q{totalGastosPendientes}</p>
+          </div>
+          <ClockIcon className="icon-xl text-white opacity-80" />
         </div>
       </div>
 
@@ -224,15 +333,19 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Principales Deudores */}
+        {/* Principales Deudores (resumen simple, la tabla de abajo es más detallada) */}
         <div className="card-modern p-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Principales Deudores</h2>
-          {topDebtors.length > 0 ? (
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Principales Deudores (Resumen)</h2>
+          {detailedDebts.length > 0 ? (
             <ul className="divide-y divide-gray-200">
-              {topDebtors.map((debtor, index) => (
+              {detailedDebts
+                .filter(debtor => debtor.totalMemberDebt > 0.01) // Solo mostrar si tienen deuda
+                .sort((a, b) => b.totalMemberDebt - a.totalMemberDebt) // Ordenar por deuda total
+                .slice(0, 5) // Mostrar los 5 principales
+                .map((debtor, index) => (
                 <li key={index} className="py-3 flex justify-between items-center">
                   <span className="text-gray-700">{debtor.miembroNombreCompleto}</span>
-                  <span className="text-red-600 font-semibold">Q{debtor.deuda}</span>
+                  <span className="text-red-600 font-semibold">Q{debtor.totalMemberDebt.toFixed(2)}</span>
                 </li>
               ))}
             </ul>
@@ -241,6 +354,70 @@ const DashboardPage = () => {
           )}
         </div>
       </div>
+
+      {/* NUEVA SECCIÓN: DETALLE COMPLETO DE DEUDAS POR INTEGRANTE */}
+      <div className="card-modern p-6 mb-10 animate-fadeInUp delay-4">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">Detalle Completo de Deudas por Integrante</h2>
+        <p className="text-gray-600 mb-4">Deudas de Aportaciones por cada miembro y concepto.</p>
+
+        {detailedDebts.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No hay deudas pendientes registradas.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gradient-to-r from-purple-800 to-purple-600">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    Integrante
+                  </th>
+                  {/* Encabezados de aportaciones dinámicos, solo si tienen deuda total general */}
+                  {filteredContributionIds.map((id, index) => (
+                    <th key={id} scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                      {contributionsDataMap.get(id)}
+                    </th>
+                  ))}
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+                    TOTAL
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {detailedDebts.map((member) => (
+                  <tr key={member.miembroNombreCompleto}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {member.miembroNombreCompleto}
+                    </td>
+                    {/* Deudas por aportación, solo para las columnas filtradas */}
+                    {filteredContributionIds.map((contributionId) => (
+                      <td key={contributionId} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        Q{member.debts[contributionId]?.toFixed(2) || '0.00'}
+                      </td>
+                    ))}
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                      Q{member.totalMemberDebt.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+                {/* Fila de totales generales */}
+                <tr className="bg-gray-50 font-semibold">
+                  <td className="px-6 py-4 whitespace-nowrap text-base text-gray-900">TOTAL GENERAL</td>
+                  {filteredContributionIds.map((id) => (
+                    <td key={id} className="px-6 py-4 whitespace-nowrap text-base text-gray-900">
+                      Q{totalGeneralDeudasPorAportacion[id]?.toFixed(2) || '0.00'}
+                    </td>
+                  ))}
+                  <td className="px-6 py-4 whitespace-nowrap text-base text-gray-900">
+                    Q{deudaPorCobrar} {/* Este ya es el total general de deuda */}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
 
       {/* Actividad Reciente */}
       <div className="card-modern p-6 mb-10">

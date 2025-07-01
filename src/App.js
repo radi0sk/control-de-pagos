@@ -11,6 +11,7 @@ import NewContributionPage from './pages/NewContributionPage.jsx';
 import RegisterPaymentPage from './pages/RegisterPaymentPage.jsx';
 import PrivateRoute from './components/Shared/PrivateRoute.jsx';
 import Navbar from './components/Shared/Navbar.jsx'; // Importa el Navbar
+import RegisterExpensePaymentPage from './pages/RegisterExpensePaymentPage.jsx'; // Import the new page
 
 function App() {
   return (
@@ -35,6 +36,11 @@ function App() {
               element={<PrivateRoute><RegisterPaymentPage /></PrivateRoute>} 
             />
           </Route>
+          <Route 
+            path="/expenses/:expenseId/register-payment" 
+            element={<PrivateRoute><RegisterExpensePaymentPage /></PrivateRoute>} 
+          />
+        
         </Routes>
       </AuthProvider>
     </Router>
