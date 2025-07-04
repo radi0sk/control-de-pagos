@@ -18,7 +18,8 @@ function LoginPage() {
 
   useEffect(() => {
     if (currentUser) {
-      navigate('/dashboard');
+      // Redirige a la ruta raíz '/' que ya está configurada para el DashboardPage
+      navigate('/');
     }
   }, [currentUser, navigate]);
 
@@ -53,7 +54,17 @@ function LoginPage() {
         return;
       }
 
-      const formattedPhone = `+${phoneNumber.replace(/\D/g, '')}`;
+      // --- INICIO DE LA MODIFICACIÓN PARA NÚMEROS DE 8 DÍGITOS ---
+      let formattedPhone = phoneNumber.replace(/\D/g, ''); // Eliminar no dígitos
+      if (formattedPhone.length === 8) {
+        formattedPhone = `+502${formattedPhone}`;
+      } else if (!formattedPhone.startsWith('+')) {
+        // Si no tiene 8 dígitos y no empieza con +, podría ser un número completo mal ingresado o de otro país
+        setError('Por favor, ingrese un número de 8 dígitos o el formato completo con código de país (ej. +50212345678).');
+        return;
+      }
+      // --- FIN DE LA MODIFICACIÓN ---
+
       const result = await signInWithPhoneNumber(auth, formattedPhone, recaptchaVerifier);
       setConfirmationResult(result);
       setStep('verifyCode');
@@ -114,7 +125,7 @@ function LoginPage() {
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="Número de teléfono (ej. +50212345678)"
+                placeholder="Número de teléfono (ej. 12345678)" // Actualiza el placeholder
                 className="input-field-inside w-full"
               />
             </div>

@@ -212,7 +212,16 @@ const DashboardPage = () => {
     );
   }
 
-  const { totalAsignado, totalRecaudado, totalGastos, totalGastosPagados, totalGastosPendientes, saldoDisponible, deudaPorCobrar, tasaRecuperacion } = summaryData;
+  // Parse values to float for comparison, then use the formatted string for display
+  const parsedTotalAsignado = parseFloat(summaryData.totalAsignado);
+  const parsedTotalRecaudado = parseFloat(summaryData.totalRecaudado);
+  const parsedTotalGastos = parseFloat(summaryData.totalGastos);
+  const parsedTotalGastosPagados = parseFloat(summaryData.totalGastosPagados);
+  const parsedTotalGastosPendientes = parseFloat(summaryData.totalGastosPendientes);
+  const parsedSaldoDisponible = parseFloat(summaryData.saldoDisponible);
+  const parsedDeudaPorCobrar = parseFloat(summaryData.deudaPorCobrar);
+  const parsedTasaRecuperacion = parseFloat(summaryData.tasaRecuperacion);
+
 
   // Calcular totales para la tabla de deudores detallada
   const totalGeneralDeudasPorAportacion = {};
@@ -245,7 +254,7 @@ const DashboardPage = () => {
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-blue-500 to-blue-600 text-white">
           <div>
             <p className="text-sm font-semibold opacity-80">Total Asignado</p>
-            <p className="text-2xl font-bold">Q{totalAsignado}</p>
+            <p className="text-2xl font-bold">Q{summaryData.totalAsignado}</p>
           </div>
           <CurrencyDollarIcon className="icon-xl text-white opacity-80" />
         </div>
@@ -254,16 +263,17 @@ const DashboardPage = () => {
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-green-500 to-green-600 text-white">
           <div>
             <p className="text-sm font-semibold opacity-80">Total Recaudado</p>
-            <p className="text-2xl font-bold">Q{totalRecaudado}</p>
+            <p className="text-2xl font-bold">Q{summaryData.totalRecaudado}</p>
           </div>
           <CreditCardIcon className="icon-xl text-white opacity-80" />
         </div>
 
         {/* Tarjeta 3: Saldo Disponible */}
-        <div className={`card-modern p-6 flex items-center justify-between ${parseFloat(saldoDisponible) >= 0 ? 'bg-gradient-to-r from-teal-500 to-teal-600' : 'bg-gradient-to-r from-orange-500 to-orange-600'} text-white`}>
+        {/* Dynamic class for Saldo Disponible */}
+        <div className={`card-modern p-6 flex items-center justify-between ${parsedSaldoDisponible >= 0 ? 'bg-gradient-to-r from-teal-500 to-teal-600' : 'bg-gradient-to-r from-red-500 to-red-600'} text-white`}>
           <div>
             <p className="text-sm font-semibold opacity-80">Saldo Disponible</p>
-            <p className="text-2xl font-bold">Q{saldoDisponible}</p>
+            <p className="text-2xl font-bold">Q{summaryData.saldoDisponible}</p>
           </div>
           <WalletIcon className="icon-xl text-white opacity-80" />
         </div>
@@ -272,7 +282,7 @@ const DashboardPage = () => {
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-purple-500 to-purple-600 text-white">
           <div>
             <p className="text-sm font-semibold opacity-80">Deuda por Cobrar</p>
-            <p className="text-2xl font-bold">Q{deudaPorCobrar}</p>
+            <p className="text-2xl font-bold">Q{summaryData.deudaPorCobrar}</p>
           </div>
           <ScaleIcon className="icon-xl text-white opacity-80" />
         </div>
@@ -281,7 +291,7 @@ const DashboardPage = () => {
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-yellow-500 to-yellow-600 text-white">
           <div>
             <p className="text-sm font-semibold opacity-80">Tasa de Recuperación</p>
-            <p className="text-2xl font-bold">{tasaRecuperacion}%</p>
+            <p className="text-2xl font-bold">{summaryData.tasaRecuperacion}%</p>
           </div>
           <ChartBarIcon className="icon-xl text-white opacity-80" />
         </div>
@@ -290,16 +300,17 @@ const DashboardPage = () => {
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-red-500 to-red-600 text-white">
           <div>
             <p className="text-sm font-semibold opacity-80">Total de Gastos (General)</p>
-            <p className="text-2xl font-bold">Q{totalGastos}</p>
+            <p className="text-2xl font-bold">Q{summaryData.totalGastos}</p>
           </div>
           <BuildingLibraryIcon className="icon-xl text-white opacity-80" />
         </div>
 
         {/* Tarjeta 7: Total Gastos Pagados */}
-        <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-green-700 to-green-800 text-white">
+        {/* Dynamic class for Gastos Pagados */}
+        <div className={`card-modern p-6 flex items-center justify-between ${parsedTotalGastosPagados <= parsedTotalRecaudado ? 'bg-gradient-to-r from-green-700 to-green-800' : 'bg-gradient-to-r from-red-700 to-red-800'} text-white`}>
           <div>
             <p className="text-sm font-semibold opacity-80">Gastos Pagados</p>
-            <p className="text-2xl font-bold">Q{totalGastosPagados}</p>
+            <p className="text-2xl font-bold">Q{summaryData.totalGastosPagados}</p>
           </div>
           <CheckCircleIcon className="icon-xl text-white opacity-80" />
         </div>
@@ -308,7 +319,7 @@ const DashboardPage = () => {
         <div className="card-modern p-6 flex items-center justify-between bg-gradient-to-r from-orange-700 to-orange-800 text-white">
           <div>
             <p className="text-sm font-semibold opacity-80">Falta por Pagar (Gastos)</p>
-            <p className="text-2xl font-bold">Q{totalGastosPendientes}</p>
+            <p className="text-2xl font-bold">Q{summaryData.totalGastosPendientes}</p>
           </div>
           <ClockIcon className="icon-xl text-white opacity-80" />
         </div>
@@ -321,14 +332,14 @@ const DashboardPage = () => {
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Ingresos vs. Gastos</h2>
           <div className="flex flex-col gap-4">
             <div className="h-10 bg-green-500 rounded-md flex items-center justify-between px-4 text-white font-medium"
-                 style={{ width: `${Math.min((parseFloat(totalRecaudado) / Math.max(parseFloat(totalAsignado), parseFloat(totalGastos))) * 100, 100)}%` }}>
+                 style={{ width: `${Math.min((parseFloat(summaryData.totalRecaudado) / Math.max(parsedTotalAsignado, parsedTotalGastos)) * 100, 100)}%` }}>
               <span>Recaudado</span>
-              <span>Q{totalRecaudado}</span>
+              <span>Q{summaryData.totalRecaudado}</span>
             </div>
             <div className="h-10 bg-red-500 rounded-md flex items-center justify-between px-4 text-white font-medium"
-                 style={{ width: `${Math.min((parseFloat(totalGastos) / Math.max(parseFloat(totalAsignado), parseFloat(totalGastos))) * 100, 100)}%` }}>
+                 style={{ width: `${Math.min((parseFloat(summaryData.totalGastos) / Math.max(parsedTotalAsignado, parsedTotalGastos)) * 100, 100)}%` }}>
               <span>Gastos</span>
-              <span>Q{totalGastos}</span>
+              <span>Q{summaryData.totalGastos}</span>
             </div>
           </div>
         </div>
@@ -409,7 +420,7 @@ const DashboardPage = () => {
                     </td>
                   ))}
                   <td className="px-6 py-4 whitespace-nowrap text-base text-gray-900">
-                    Q{deudaPorCobrar} {/* Este ya es el total general de deuda */}
+                    Q{summaryData.deudaPorCobrar} {/* Este ya es el total general de deuda */}
                   </td>
                 </tr>
               </tbody>

@@ -1,20 +1,20 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext.jsx'; // ¡IMPORTANTE: Verifica que la ruta y el nombre del archivo sean EXACTOS!
-import { HomeIcon, UsersIcon, CreditCardIcon, ChartBarIcon, ClipboardDocumentListIcon, ArrowLeftOnRectangleIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'; // Iconos de Heroicons v2
+import { useAuth } from '../../context/AuthContext.jsx';
+import { HomeIcon, UsersIcon, CreditCardIcon, ChartBarIcon, ClipboardDocumentListIcon, ArrowLeftOnRectangleIcon, Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
-  const [isOpen, setIsOpen] = useState(false); // Estado para controlar el menú móvil
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/login');
+      navigate('/login'); // Redirige a la página de login después de cerrar sesión
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
-      // Podrías mostrar un mensaje de error al usuario aquí
+      // Opcional: Mostrar un mensaje de error al usuario, por ejemplo con un estado de error
     }
   };
 
@@ -49,7 +49,7 @@ const Navbar = () => {
               to={link.path}
               className="text-gray-700 hover:text-blue-dark font-medium transition-colors duration-200 inline-flex items-center group"
             >
-              <link.icon className="h-5 w-5 mr-2 text-gray-500 group-hover:text-blue-dark icon-interactive" /> {/* Icono interactivo */}
+              <link.icon className="h-5 w-5 mr-2 text-gray-500 group-hover:text-blue-dark icon-interactive" />
               {link.name}
             </Link>
           ))}
@@ -57,18 +57,22 @@ const Navbar = () => {
 
         {/* Información del usuario y botón de cerrar sesión - Desktop */}
         <div className="hidden md:flex items-center space-x-4">
+          {/* Muestra el nombre si currentUser existe y tiene displayName */}
           {currentUser && currentUser.displayName && (
             <span className="text-gray-700 text-sm font-medium">
               Hola, {currentUser.displayName.split(' ')[0]}!
             </span>
           )}
-          <button
-            onClick={handleLogout}
-            className="btn-secondary-outline inline-flex items-center text-sm px-3 py-1.5"
-          >
-            <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2 icon-interactive" /> {/* Icono interactivo */}
-            Cerrar Sesión
-          </button>
+          {/* Muestra el botón de cerrar sesión si hay un usuario logueado */}
+          {currentUser && (
+            <button
+              onClick={handleLogout}
+              className="btn-secondary-outline inline-flex items-center text-sm px-3 py-1.5"
+            >
+              <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2 icon-interactive" />
+              Cerrar Sesión
+            </button>
+          )}
         </div>
       </div>
 
@@ -80,7 +84,7 @@ const Navbar = () => {
               <Link
                 key={link.name}
                 to={link.path}
-                onClick={() => setIsOpen(false)} // Cierra el menú al hacer clic en un enlace
+                onClick={() => setIsOpen(false)}
                 className="block text-gray-700 hover:text-blue-dark font-medium py-2 px-3 rounded-md hover:bg-gray-100 transition-colors duration-200 inline-flex items-center"
               >
                 <link.icon className="h-5 w-5 mr-3 text-gray-500" />
@@ -88,18 +92,22 @@ const Navbar = () => {
               </Link>
             ))}
             <hr className="border-gray-200 my-2" />
+            {/* Muestra el nombre si currentUser existe y tiene displayName para móvil */}
             {currentUser && currentUser.displayName && (
               <span className="text-gray-700 text-sm font-medium py-2 px-3">
                 Hola, {currentUser.displayName.split(' ')[0]}!
               </span>
             )}
-            <button
-              onClick={handleLogout}
-              className="btn-secondary-outline inline-flex items-center text-sm px-3 py-1.5 w-full justify-center"
-            >
-              <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2" />
-              Cerrar Sesión
-            </button>
+            {/* Muestra el botón de cerrar sesión si hay un usuario logueado para móvil */}
+            {currentUser && (
+              <button
+                onClick={handleLogout}
+                className="btn-secondary-outline inline-flex items-center text-sm px-3 py-1.5 w-full justify-center"
+              >
+                <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2" />
+                Cerrar Sesión
+              </button>
+            )}
           </div>
         </div>
       )}
