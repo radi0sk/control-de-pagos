@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { doc, getDoc, writeBatch, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, writeBatch, serverTimestamp, collection } from 'firebase/firestore'; // Importar 'collection'
 import { db } from '../../firebase/firebaseConfig.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +17,10 @@ const ExpensePaymentForm = ({ expenseId }) => {
   // Estados del formulario para el pago
   const [paymentAmount, setPaymentAmount] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('');
-  const [paymentDate, setPaymentDate] = useState('');
+  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 16));
+
+  // Nuevo estado para controlar el envío del formulario
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchExpense = async () => {
@@ -30,7 +33,7 @@ const ExpensePaymentForm = ({ expenseId }) => {
         if (expenseSnap.exists()) {
           const data = expenseSnap.data();
           setExpense(data);
-          setPaymentDate(new Date().toISOString().slice(0, 16)); // Fecha y hora actual por defecto
+          setPaymentDate(new Date().toISOString().slice(0, 16)); // Fecha y hora actual
         } else {
           setError('Gasto no encontrado.');
         }
@@ -52,263 +55,238 @@ const ExpensePaymentForm = ({ expenseId }) => {
     setError('');
     setSuccess('');
 
-    if (!paymentAmount || isNaN(parseFloat(paymentAmount)) || parseFloat(paymentAmount) <= 0) {
-      setError('Por favor, ingrese un monto de pago válido.');
+    if (isSubmitting) return; // Prevenir doble envío
+
+    if (!paymentAmount || isNaN(Number(paymentAmount)) || Number(paymentAmount) <= 0) {
+      setError('Por favor, ingresa un monto de pago válido.');
       return;
     }
     if (!paymentMethod) {
-      setError('Por favor, seleccione un método de pago.');
-      return;
-    }
-    if (!paymentDate) {
-      setError('Por favor, seleccione una fecha de pago.');
-      return;
-    }
-    if (!expense) {
-      setError('Error: Datos del gasto no cargados.');
+      setError('Por favor, selecciona un método de pago.');
       return;
     }
 
-    const amountPaidInput = parseFloat(paymentAmount);
-    const currentExpenseTotal = parseFloat(expense.monto);
-    
-    // Calcular el total ya pagado de este gasto
-    const currentPaidForExpense = expense.abonos?.reduce((sum, abono) => 
-      sum + (abono.montoAbonoPagado || (abono.estadoAbono === 'pagado' ? abono.montoAbono : 0)), 0
-    ) || 0;
-
-    const currentPendingForExpense = currentExpenseTotal - currentPaidForExpense;
-
-    if (amountPaidInput > currentPendingForExpense + 0.01) { // Pequeña tolerancia
-      setError(`El monto ingresado (Q${amountPaidInput.toFixed(2)}) excede el total pendiente (Q${currentPendingForExpense.toFixed(2)}) para este gasto.`);
-      return;
-    }
+    setIsSubmitting(true); // Deshabilitar el botón
 
     try {
-      const batch = writeBatch(db);
       const expenseRef = doc(db, 'expenses', expenseId);
+      const expenseSnap = await getDoc(expenseRef);
 
-      // Copia profunda del array de abonos
-      const updatedAbonos = expense.abonos ? [...expense.abonos] : [];
-
-      // Si no hay abonos o solo hay un abono inicial (como se crea en ExpenseForm)
-      // asumimos que el pago se aplica al primer/único abono.
-      if (updatedAbonos.length === 0) {
-        // Esto no debería ocurrir si ExpenseForm inicializa un abono, pero es una salvaguarda
-        updatedAbonos.push({
-          numeroAbono: 1,
-          montoAbono: currentExpenseTotal, // El monto original del gasto
-          montoAbonoPagado: 0,
-          estadoAbono: "pendiente",
-          fechaPago: null,
-          metodoPago: null,
-          registradoPor: null,
-          fechaRegistroPago: null,
-          comprobanteUrl: null // Si se manejan comprobantes por abono
-        });
+      if (!expenseSnap.exists()) {
+        setError('Gasto no encontrado.');
+        return;
       }
 
-      let remainingAmountToApply = amountPaidInput;
+      const currentExpense = expenseSnap.data();
+      const batch = writeBatch(db);
 
-      // Aplicar el pago al primer abono pendiente/parcialmente pagado
-      // En el caso de gastos, normalmente solo hay un abono que representa el total
-      const firstAbono = updatedAbonos[0]; 
-      if (firstAbono) {
-        const abonoRemaining = firstAbono.montoAbono - (firstAbono.montoAbonoPagado || 0);
+      const amountToAdd = Number(paymentAmount);
+      const currentPaid = Number(currentExpense.totalPagado) || 0;
+      const currentPending = Number(currentExpense.monto) - currentPaid;
 
-        if (remainingAmountToApply >= abonoRemaining) {
-          // Paga el abono completamente
-          firstAbono.montoAbonoPagado = firstAbono.montoAbono;
-          firstAbono.estadoAbono = 'pagado';
-          firstAbono.fechaPago = new Date(paymentDate);
-          firstAbono.metodoPago = paymentMethod;
-          firstAbono.registradoPor = currentUser?.displayName || 'Desconocido';
-          firstAbono.fechaRegistroPago = new Date(); // Changed from serverTimestamp()
-          remainingAmountToApply -= abonoRemaining;
-        } else {
-          // Pago parcial
-          firstAbono.montoAbonoPagado = (firstAbono.montoAbonoPagado || 0) + remainingAmountToApply;
-          firstAbono.estadoAbono = 'parcialmente_pagado';
-          firstAbono.fechaPago = new Date(paymentDate);
-          firstAbono.metodoPago = paymentMethod;
-          firstAbono.registradoPor = currentUser?.displayName || 'Desconocido';
-          firstAbono.fechaRegistroPago = new Date(); // Changed from serverTimestamp()
-          remainingAmountToApply = 0;
+      if (amountToAdd > currentPending + 0.001) { // Pequeña tolerancia para flotantes
+        setError(`El monto excede lo pendiente para este gasto (Q${currentPending.toFixed(2)}).`);
+        return;
+      }
+
+      const newTotalPaid = currentPaid + amountToAdd;
+      const newTotalPending = Number(currentExpense.monto) - newTotalPaid;
+      const newEstadoPagoGasto = newTotalPending <= 0.001 ? 'pagado' : (newTotalPaid > 0 ? 'parcialmente_pagado' : 'pendiente'); // Tolerancia
+
+      // Actualizar el estado de los abonos
+      const updatedAbonos = [...(currentExpense.abonos || [])];
+      let remainingAmountToApply = amountToAdd;
+
+      for (let i = 0; i < updatedAbonos.length; i++) {
+        let abono = updatedAbonos[i];
+        const abonoPaid = Number(abono.montoAbonoPagado) || 0;
+        const abonoTotal = Number(abono.montoAbono) || 0;
+        const abonoPending = abonoTotal - abonoPaid;
+
+        if (abonoPending > 0.001 && remainingAmountToApply > 0) {
+          const amountForThisAbono = Math.min(remainingAmountToApply, abonoPending);
+          abono.montoAbonoPagado = abonoPaid + amountForThisAbono;
+          abono.estadoAbono = (abonoTotal <= abono.montoAbonoPagado + 0.001) ? 'pagado' : 'parcialmente_pagado';
+          if (!abono.fechaPago) abono.fechaPago = new Date(paymentDate); // Solo la primera vez
+          abono.metodoPago = paymentMethod;
+
+          remainingAmountToApply -= amountForThisAbono;
         }
       }
 
-      // Determinar el nuevo estado de pago del gasto
-      let newEstadoPagoGasto;
-      const totalPaidAfterUpdate = updatedAbonos.reduce((sum, abono) => 
-        sum + (abono.montoAbonoPagado || (abono.estadoAbono === 'pagado' ? abono.montoAbono : 0)), 0
-      );
-
-      if (totalPaidAfterUpdate >= currentExpenseTotal) {
-        newEstadoPagoGasto = 'pagado';
-      } else if (totalPaidAfterUpdate > 0) {
-        newEstadoPagoGasto = 'parcialmente_pagado';
-      } else {
-        newEstadoPagoGasto = 'pendiente';
-      }
-
-      // Actualizar el documento del gasto
       batch.update(expenseRef, {
         abonos: updatedAbonos,
+        totalPagado: newTotalPaid,
+        totalPendiente: newTotalPending,
         estadoPagoGasto: newEstadoPagoGasto,
-        fechaActualizacion: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        lastPaymentDate: new Date(paymentDate)
       });
+
+      // Registrar el pago en la subcolección de pagos para este gasto
+      const newExpensePaymentRef = doc(collection(db, 'expenses', expenseId, 'payments')); // Auto-generar ID
+      batch.set(newExpensePaymentRef, {
+        amount: amountToAdd,
+        method: paymentMethod,
+        date: new Date(paymentDate),
+        registeredAt: serverTimestamp(),
+        registeredBy: currentUser ? currentUser.uid : 'anonimo', // Usando currentUser aquí
+      });
+
 
       await batch.commit();
 
-      setSuccess('Pago de gasto registrado exitosamente!');
-      setPaymentAmount(''); // Limpiar el monto
-      setPaymentMethod(''); // Limpiar el método
-      setTimeout(() => navigate('/expenses'), 2000); // Redirigir a la lista de gastos
+      setSuccess('¡Pago registrado exitosamente!');
+      setPaymentAmount('');
+      setPaymentMethod('');
+
+      setTimeout(() => {
+        navigate('/expenses'); // Redirigir a la lista de gastos
+      }, 1500);
+
     } catch (err) {
-      console.error("Error al registrar pago de gasto:", err);
-      setError('Error al registrar el pago del gasto. Por favor, intente nuevamente.');
+      console.error("Error al registrar el pago del gasto:", err);
+      setError('Error al registrar el pago. Por favor, intenta de nuevo. ' + err.message);
+    } finally {
+      setIsSubmitting(false); // Siempre habilitar el botón al finalizar
     }
   };
 
   if (loading) {
+    return <div className="text-center py-8">Cargando detalles del gasto...</div>;
+  }
+
+  if (error && !success) {
     return (
-      <div className="flex justify-center items-center h-full">
-        <div className="spinner"></div>
-        <span className="ml-4 text-gray-600">Cargando formulario de pago de gasto...</span>
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+        <strong className="font-bold">Error:</strong>
+        <span className="block sm:inline"> {error}</span>
       </div>
     );
   }
 
-  if (error && !expense) { 
-    return (
-        <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-start animate-fadeInUp">
-            <XMarkIcon className="h-5 w-5 mr-2" />
-            <span><strong className="font-bold">Error:</strong> {error}</span>
-        </div>
-    );
-  }
-
-  const currentPaidForExpense = expense?.abonos?.reduce((sum, abono) => 
-    sum + (abono.montoAbonoPagado || (abono.estadoAbono === 'pagado' ? abono.montoAbono : 0)), 0
-  ) || 0;
-  const currentPendingForExpense = (expense?.monto || 0) - currentPaidForExpense;
-
+  const expensePendingAmount = (Number(expense?.monto) || 0) - (Number(expense?.totalPagado) || 0);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 animate-fadeInUp">
-      {error && (
-        <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg flex items-start">
-          <XMarkIcon className="h-5 w-5 mr-2" />
-          <span>{error}</span>
-        </div>
-      )}
+    <div className="card-modern p-6">
       {success && (
-        <div className="mb-4 p-4 bg-green-50 text-green-700 rounded-lg flex items-start">
-          <CheckIcon className="h-5 w-5 mr-2" />
-          <span>{success}</span>
+        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <strong className="font-bold">Éxito:</strong>
+          <span className="block sm:inline"> {success}</span>
         </div>
       )}
 
-      {/* Sección de Resumen del Gasto */}
-      <div className="card-modern p-4 rounded-md animate-fadeInUp delay-1">
-        <p className="text-sm text-gray-700"><span className="font-semibold text-blue-dark">Descripción del Gasto:</span> {expense?.descripcion}</p>
-        <p className="text-sm text-gray-700"><span className="font-semibold text-blue-dark">Proveedor:</span> {expense?.proveedor}</p>
-        <p className="text-sm text-gray-700"><span className="font-semibold text-blue-dark">Monto Total del Gasto:</span> Q{expense?.monto?.toFixed(2)}</p>
-        <p className="text-sm text-gray-700"><span className="font-semibold text-blue-dark">Pagado hasta ahora:</span> Q{currentPaidForExpense.toFixed(2)}</p>
-        <p className="text-base text-gray-900"><span className="font-semibold text-red-dark">Pendiente por Pagar:</span> Q{currentPendingForExpense.toFixed(2)}</p>
-      </div>
+      <h2 className="text-lg font-semibold text-gray-800 mb-4">Registrar Pago de Gasto</h2>
+      {expense && (
+        <>
+          <p className="text-sm text-gray-600 mb-2">Descripción: <span className="font-medium">{expense.descripcion}</span></p>
+          <p className="text-sm text-gray-600 mb-4">Monto Pendiente: <span className="font-medium text-red-600">Q{expensePendingAmount.toFixed(2)}</span></p>
+        </>
+      )}
 
-      {/* Monto del Pago */}
-      <div className="animate-fadeInUp delay-2">
-        <label htmlFor="paymentAmount" className="block text-sm font-medium text-gray-700 mb-1">
-          Monto del Pago *
-        </label>
-        <div className="input-with-icon-wrapper">
-          <div className="input-icon">
-            <CurrencyDollarIcon className="h-5 w-5" />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Monto del Abono */}
+        <div className="animate-fadeInUp delay-2">
+          <label htmlFor="paymentAmount" className="block text-sm font-medium text-gray-700 mb-1">
+            Monto del Abono *
+          </label>
+          <div className="input-with-icon-wrapper">
+            <div className="input-icon">
+              <CurrencyDollarIcon className="h-5 w-5" />
+            </div>
+            <input
+              type="text"
+              id="paymentAmount"
+              name="paymentAmount"
+              value={paymentAmount}
+              onChange={(e) => {
+                const re = /^[0-9]*\.?[0-9]*$/;
+                if (e.target.value === '' || re.test(e.target.value)) {
+                  setPaymentAmount(e.target.value);
+                }
+              }}
+              onBlur={(e) => {
+                if (e.target.value !== '') {
+                  setPaymentAmount(parseFloat(e.target.value).toFixed(2));
+                }
+              }}
+              onWheel={(e) => e.target.blur()}
+              placeholder="0.00"
+              className="input-field-inside flex-1"
+              required
+            />
           </div>
-          <span className="text-gray-500 pl-2 pr-1">Q</span>
-          <input
-            type="number"
-            id="paymentAmount"
-            name="paymentAmount"
-            value={paymentAmount}
-            onChange={(e) => setPaymentAmount(e.target.value)}
-            min="0.01"
-            step="0.01"
-            className="input-field-inside flex-1"
-            required
-          />
         </div>
-      </div>
 
-      {/* Método de Pago */}
-      <div className="animate-fadeInUp delay-3">
-        <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-1">
-          Método de Pago *
-        </label>
-        <div className="input-with-icon-wrapper">
-          <div className="input-icon">
-            <CreditCardIcon className="h-5 w-5" />
+        {/* Método de Pago */}
+        <div className="animate-fadeInUp delay-3">
+          <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-1">
+            Método de Pago *
+          </label>
+          <div className="input-with-icon-wrapper">
+            <div className="input-icon">
+              <CreditCardIcon className="h-5 w-5" />
+            </div>
+            <select
+              id="paymentMethod"
+              name="paymentMethod"
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value)}
+              className="input-field-inside flex-1"
+              required
+            >
+              <option value="">Selecciona un método</option>
+              <option value="Efectivo">Efectivo</option>
+              <option value="Transferencia">Transferencia Bancaria</option>
+              <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
+              <option value="Cheque">Cheque</option>
+              <option value="Otro">Otro</option>
+            </select>
           </div>
-          <select
-            id="paymentMethod"
-            name="paymentMethod"
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            className="input-field-inside flex-1"
-            required
+        </div>
+
+        {/* Fecha y Hora del Pago */}
+        <div className="animate-fadeInUp delay-4">
+          <label htmlFor="paymentDate" className="block text-sm font-medium text-gray-700 mb-1">
+            Fecha y Hora del Pago *
+          </label>
+          <div className="input-with-icon-wrapper">
+            <div className="input-icon">
+              <CalendarDaysIcon className="h-5 w-5" />
+            </div>
+            <input
+              type="datetime-local"
+              id="paymentDate"
+              name="paymentDate"
+              value={paymentDate}
+              onChange={(e) => setPaymentDate(e.target.value)}
+              className="input-field-inside flex-1"
+              required
+            />
+          </div>
+        </div>
+
+        {/* Botones de acción */}
+        <div className="flex justify-between pt-6 border-t animate-fadeInUp delay-5">
+          <button
+            type="button"
+            onClick={() => navigate('/expenses')}
+            className="btn-secondary-outline inline-flex items-center"
           >
-            <option value="">Seleccione un método</option>
-            <option value="Efectivo">Efectivo</option>
-            <option value="Transferencia Bancaria">Transferencia Bancaria</option>
-            <option value="Cheque">Cheque</option>
-            <option value="Depósito">Depósito</option>
-            <option value="Otro">Otro</option>
-          </select>
+            <XMarkIcon className="h-5 w-5 mr-2 icon-interactive" />
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            className="btn-primary-gradient inline-flex items-center"
+            disabled={isSubmitting || expensePendingAmount <= 0}
+          >
+            {isSubmitting ? 'Registrando...' : 'Registrar Pago'}
+            <CheckIcon className="h-5 w-5 ml-2 icon-interactive" />
+          </button>
         </div>
-      </div>
-
-      {/* Fecha y Hora del Pago */}
-      <div className="animate-fadeInUp delay-4">
-        <label htmlFor="paymentDate" className="block text-sm font-medium text-gray-700 mb-1">
-          Fecha y Hora del Pago *
-        </label>
-        <div className="input-with-icon-wrapper">
-          <div className="input-icon">
-            <CalendarDaysIcon className="h-5 w-5" />
-          </div>
-          <input
-            type="datetime-local"
-            id="paymentDate"
-            name="paymentDate"
-            value={paymentDate}
-            onChange={(e) => setPaymentDate(e.target.value)}
-            className="input-field-inside flex-1"
-            required
-          />
-        </div>
-      </div>
-
-      {/* Botones de acción */}
-      <div className="flex justify-between pt-6 border-t animate-fadeInUp delay-5">
-        <button
-          type="button"
-          onClick={() => navigate('/expenses')}
-          className="btn-secondary-outline inline-flex items-center"
-        >
-          <XMarkIcon className="h-5 w-5 mr-2 icon-interactive" />
-          Cancelar
-        </button>
-        <button
-          type="submit"
-          className="btn-primary-gradient inline-flex items-center"
-        >
-          <CheckIcon className="h-5 w-5 mr-2 icon-interactive" />
-          Registrar Pago
-        </button>
-      </div>
-    </form>
+      </form>
+    </div>
   );
 };
 

@@ -12,7 +12,9 @@ import NewContributionPage from './pages/NewContributionPage.jsx';
 import RegisterPaymentPage from './pages/RegisterPaymentPage.jsx';
 import RegisterMemberPaymentPage from './pages/RegisterMemberPaymentPage.jsx';
 import RegisterExpensePaymentPage from './pages/RegisterExpensePaymentPage.jsx';
-import MemberContributionsSummaryPage from './pages/MemberContributionsSummaryPage.jsx'; // Import the new page
+import MemberContributionsSummaryPage from './pages/MemberContributionsSummaryPage.jsx';
+import DataManagementPage from './pages/DataManagementPage.jsx';
+import EditMemberContributionPage from './pages/EditMemberContribution/EditMemberContributionPage.jsx'; // ¡NUEVA IMPORTACIÓN!
 import PrivateRoute from './components/Shared/PrivateRoute.jsx';
 import Navbar from './components/Shared/Navbar.jsx';
 
@@ -22,29 +24,31 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          
+
           <Route element={<LayoutWithNavbar />}>
             <Route path="/" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
             <Route path="/members" element={<PrivateRoute><MembersPage /></PrivateRoute>} />
-            {/* NEW ROUTE FOR MEMBER CONTRIBUTIONS SUMMARY */}
             <Route path="/members/:memberId/contributions-summary" element={<PrivateRoute><MemberContributionsSummaryPage /></PrivateRoute>} />
             <Route path="/payments" element={<PrivateRoute><MemberDebtsPage /></PrivateRoute>} />
             <Route path="/expenses" element={<PrivateRoute><ExpensesPage /></PrivateRoute>} />
             <Route path="/contributions" element={<PrivateRoute><ContributionsPage /></PrivateRoute>} />
             <Route path="/contributions/:id" element={<PrivateRoute><ContributionDetail /></PrivateRoute>} />
             <Route path="/contributions/new" element={<PrivateRoute><NewContributionPage /></PrivateRoute>} />
-            <Route 
-              path="/contributions/:contributionId/members/:memberContributionId/register-payment" 
-              element={<PrivateRoute><RegisterPaymentPage /></PrivateRoute>} 
+            <Route
+              path="/contributions/:contributionId/members/:memberContributionId/register-payment"
+              element={<PrivateRoute><RegisterPaymentPage /></PrivateRoute>}
             />
-            <Route 
-              path="/payments/register-general/:memberId" 
-              element={<PrivateRoute><RegisterMemberPaymentPage /></PrivateRoute>} 
+            <Route
+              path="/payments/register-general/:memberId"
+              element={<PrivateRoute><RegisterMemberPaymentPage /></PrivateRoute>}
             />
-            <Route 
-              path="/expenses/:expenseId/register-payment" 
-              element={<PrivateRoute><RegisterExpensePaymentPage /></PrivateRoute>} 
+            <Route
+              path="/expenses/:expenseId/register-payment"
+              element={<PrivateRoute><RegisterExpensePaymentPage /></PrivateRoute>}
             />
+            <Route path="/data-management" element={<PrivateRoute><DataManagementPage /></PrivateRoute>} />
+            <Route path="/data-management/edit/:memberContributionId" element={<PrivateRoute><EditMemberContributionPage /></PrivateRoute>} />
+          
           </Route>
         </Routes>
       </AuthProvider>
@@ -56,7 +60,7 @@ const LayoutWithNavbar = () => {
   return (
     <>
       <Navbar />
-      <div className="pt-16"> 
+      <div className="pt-16">
         <Outlet />
       </div>
     </>
